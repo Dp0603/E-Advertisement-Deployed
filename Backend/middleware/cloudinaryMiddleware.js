@@ -3,7 +3,7 @@ const cloudinary = require("cloudinary").v2;
 
 const uploadFile = async (file) => {
     cloudinary.config({
-        cloud_name: "ds8wjvznw",
+        cloud_name: "dqi8cb2gn",
         api_key: process.env.API_KEY_CLOUDINARY,
         api_secret: process.env.API_SECRET_CLOUDINARY
     })
