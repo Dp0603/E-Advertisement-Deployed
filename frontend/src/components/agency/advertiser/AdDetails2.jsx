@@ -1,349 +1,523 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Container, TextField, Typography, Button, CssBaseline, Select, Input, FormHelperText, Menu } from '@mui/material';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
+import {
+  Box,
+  Container,
+  TextField,
+  Typography,
+  Button,
+  CssBaseline,
+  Select,
+  InputLabel,
+  MenuItem,
+  FormControl,
+  FormHelperText,
+  Paper,
+  Divider,
+  Fade,
+  Tooltip,
+} from '@mui/material';
 import { useForm } from 'react-hook-form';
 import API from '../../../api/axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import CampaignIcon from '@mui/icons-material/Campaign';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 export const AdDetails2 = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm();
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
-    const [states, setStates] = useState([]);
-    const [cities, setCities] = useState([]);
-    const [areas, setAreas] = useState([]);
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [imagePreview, setImagePreview] = useState(null);
 
+  const getStates = async () => {
+    const res = await API.get("/getstates");
+    setStates(res.data.data);
+  };
 
-    const getStates = async () => {
-        const res = await API.get("/getstates");
-        console.log(res.data);
-        setStates(res.data.data);
-    };
+  const getCityByStateId = async (id) => {
+    setValue("cityId", "");
+    setValue("areaId", "");
+    setCities([]);
+    setAreas([]);
+    if (!id) return;
+    const res = await API.get("/getcitybystateid/" + id);
+    setCities(res.data.data);
+  };
 
-    const getCityByStateId = async (id) => {
+  const getAreaByCityId = async (id) => {
+    setValue("areaId", "");
+    setAreas([]);
+    if (!id) return;
+    const res = await API.get("/getareabycity/" + id);
+    setAreas(res.data.data);
+  };
 
-        const res = await API.get("/getcitybystateid/" + id);
-        console.log("city response...", res.data);
-        setCities(res.data.data);
-    };
+  useEffect(() => {
+    getStates();
+  }, []);
 
-    const getAreaByCityId = async (id) => {
+  const handlerSubmit = async (data) => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    const decodedtoken = jwtDecode(token);
+    const advertiserId = decodedtoken.id;
 
-        const res = await API.get("/getareabycity/" + id);
-        console.log("ad:-", res.data);
-        setAreas(res.data.data);
-    };
+    try {
+      const formData = new FormData();
+      formData.append("title", data.title);
+      formData.append("description", data.description);
+      formData.append("targetAudience", data.targetAudience);
+      formData.append("longitude_latitude", data.longitude_latitude);
+      formData.append("adType", data.adType);
+      formData.append("adDimensions", data.adDimensions);
+      formData.append("adDuration", data.adDuration);
+      formData.append("budget", data.budget);
+      formData.append("stateId", data.stateId);
+      formData.append("cityId", data.cityId);
+      formData.append("areaId", data.areaId);
+      formData.append("image", data.image[0]);
+      formData.append("advertiserId", advertiserId);
 
-    useEffect(() => {
-        getStates();
-    }, []);
-
-
-    const handlerSubmit = async (data) => {
-        setLoading(true);
-        const token = localStorage.getItem("token");
-        const decodedtoken = jwtDecode(token);
-        const advertiserId = decodedtoken.id;
-
-        try {
-            console.log(data);
-            console.log(advertiserId);
-            console.log(data.image[0]);
-            const formData = new FormData();
-            formData.append("title", data.title);
-            formData.append("description", data.description);
-            formData.append("targetAudience", data.targetAudience);
-            formData.append("longitude_latitude", data.longitude_latitude);
-            formData.append("adType", data.adType);
-            formData.append("adDimensions", data.adDimensions);
-            formData.append("adDuration", data.adDuration);
-            formData.append("budget", data.budget);
-            formData.append("stateId", data.stateId);
-            formData.append("cityId", data.cityId);
-            formData.append("areaId", data.areaId);
-            formData.append("image", data.image[0]);
-            formData.append("advertiserId", advertiserId);
-
-            const res = await API.post("/advertiser/createadswithfile", formData)   ;
-            console.log(data);
-            console.log(res.data);
-
-
-            toast.success("Ad details created successfully!");
-            navigate("/screenings2");
-        } catch (error) {
-            toast.error("Error submitting ad: " + (error.response?.data?.message || error.message));
-        }
-        setLoading(false);
-    };
-
-
-
-    const validations = {
-        titleValidation: {
-            required: {
-                value: true,
-                message: "title is required"
-
-            },
-            minLength: {
-                value: 3,
-                message: "Title should contain enough characters"
-            }
-        },
-        descriptionValidation: {
-            required: {
-                value: true,
-                message: "Description is required"
-
-            },
-            minLength: {
-                value: 10,
-                message: "Should contain aleast 10 characters"
-            }
-        },
-        targetValidation: {
-            required: {
-                value: true,
-                message: " This Field  is required"
-
-            }
-        },
-        cityValidation: {
-            required: {
-                value: true,
-                message: "Field is required"
-
-            }
-        },
-        adTypeValidation: {
-            required: {
-                value: true,
-                message: "Field is required"
-
-            }
-        },
-        adDurationValidation: {
-            required: {
-                value: true,
-                message: "Duration is required"
-            }
-        },
-        budgetValidation: {
-            required: {
-                value: true,
-                message: "Budget is required"
-
-            }
-        },
-
-
-
+      await API.post("/advertiser/createadswithfile", formData);
+      toast.success("Ad details created successfully!");
+      navigate("/screenings2");
+    } catch (error) {
+      toast.error("Error submitting ad: " + (error.response?.data?.message || error.message));
     }
-    return (
-        <>
-            <CssBaseline />
+    setLoading(false);
+  };
 
-            <Container
-                maxWidth={false}
-                disableGutters
-                sx={{
-                    height: "110vh", // Full viewport height
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    backgroundColor: "#0A192F",
-                    padding: "0px", // Removes extra spacing
-                    position: "relative",
-                }}
-            >
-                {/* Main Box Container */}
-                <Box
-                    sx={{
-                        display: "flex",
-                        width: "80%",
-                        maxWidth: "1200px",
-                        height: "650px", // Fixed height
-                        backgroundColor: "#112240",
-                        borderRadius: "8px",
-                        boxShadow: "4px 4px 10px rgba(0,0,0,0.3)",
-                        color: "white",
-                        padding: "20px",
-                        position: "absolute",
-                        top: "50%",
-                        transform: "translateY(-50%)", // Centers properly
-                    }}
-                >
-                    {/* Left - Form Section */}
-                    <Box sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        padding: "20px",
-                    }}>
-                        <Typography variant="h4" sx={{
-                            fontWeight: "bold", mb: 2, textTransform: "uppercase", textAlign: "center",
-                        }}>
-                            Advertisement Details
-                        </Typography>
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImagePreview(URL.createObjectURL(e.target.files[0]));
+    } else {
+      setImagePreview(null);
+    }
+  };
 
-                        <form onSubmit={handleSubmit(handlerSubmit)}>
-                            <TextField fullWidth label="Title"
-                                {...register("title", validations.titleValidation)}
-                                error={!!errors.Title}
-                                helperText={errors.title?.message}
-                                variant="outlined" sx={inputStyles} />
-
-                            <TextField fullWidth multiline rows={2} label="Description"
-                                {...register("description", validations.descriptionValidation)}
-                                error={!!errors.description}
-                                helperText={errors.description?.message}
-                                variant="outlined" sx={inputStyles} />
-
-                            <TextField fullWidth label="Target Audience"
-                                {...register("targetAudience", validations.targetValidation)}
-                                error={!!errors.targetAudience}
-                                helperText={errors.targetAudience?.message}
-                                variant="outlined" sx={inputStyles} />
-
-                            <FormControl fullWidth error={!!errors.adType}>
-                                <InputLabel sx={{ color: "white" }}>adType</InputLabel>
-                                <Select
-                                    label="adType"
-                                    {...register("adType", validations.adTypeValidation)}
-                                    sx={inputStyles}
-                                >
-                                    <MenuItem value="Billboard">Billboard</MenuItem>
-                                    <MenuItem value="Digital">Digital</MenuItem>
-                                    <MenuItem value="Gantry">Gantry</MenuItem>
-                                    <MenuItem value="Unipole">Unipole</MenuItem>
-                                </Select>
-                                {errors.adType && <FormHelperText>{errors.adType.message}</FormHelperText>}
-                            </FormControl>
-                            <TextField fullWidth label="Dimensions" sx={inputStyles} {...register("adDimensions", validations.cityValidation)} ></TextField>
-                            <TextField fullWidth label="Ad Duration (Days)"
-                                {...register("adDuration", validations.adDurationValidation)}
-                                error={!!errors.adDuration}
-                                helperText={errors.adDuration?.message}
-                                variant="outlined" sx={inputStyles} />
-
-                            <TextField fullWidth label="Budget ($)"
-                                {...register("budget", validations.budgetValidation)}
-                                error={!!errors.budget}
-                                helperText={errors.budget?.message}
-                                variant="outlined" sx={inputStyles} />
-                            <Button type="submit" variant="contained" fullWidth sx={{
-                                background: "#2563EB", fontWeight: "bold", fontSize: "1rem", mt: 2,
-                            }}>
-                                {loading ? "Posting..." : "Submit Advertisement"}
-                            </Button>
-                        </form>
-                    </Box>
-
-                    {/* // right side of the box */}
-                    <Box sx={{
-                        flex: 1,
-                        padding: "20px",
-                        borderLeft: "2px solid rgba(255, 255, 255, 0.2)",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                    }}>
-
-                        <Typography variant="h5" sx={{ mb: 2 }}>More Options</Typography>
-
-
-
-
-                        {/* State Dropdown */}
-                        <FormControl fullWidth error={!!errors.state} sx={inputStyles}>
-                            <InputLabel>State</InputLabel>
-                            <Select
-                                {...register("stateId", { required: "State is required" })}
-                                onChange={(e) => { getCityByStateId(e.target.value); }}
-                                label="State"
-                            >
-                                <MenuItem value="">Select State</MenuItem>
-                                {states?.map((state) => (
-                                    <MenuItem key={state._id} value={state._id}>{state.name}</MenuItem>
-                                ))}
-                            </Select>
-                            {errors.state && <FormHelperText>{errors.state.message}</FormHelperText>}
-                        </FormControl>
-
-                        {/* City Dropdown */}
-                        <FormControl fullWidth error={!!errors.city} sx={inputStyles}>
-                            <InputLabel>City</InputLabel>
-                            <Select
-
-                                {...register("cityId", { required: "City is required" })}
-                                onChange={(e) => {
-                                    getAreaByCityId(e.target.value);
-
-
-                                }}
-                                label="City"
-                            >
-                                <MenuItem value="">Select City</MenuItem>
-                                {cities?.map((city) => (
-                                    <MenuItem key={city._id} value={city._id}>{city.name}</MenuItem>
-                                ))}
-                            </Select>
-                            {errors.city && <FormHelperText>{errors.city.message}</FormHelperText>}
-                        </FormControl>
-
-                        {/* Area Dropdown */}
-                        <FormControl fullWidth error={!!errors.area} sx={inputStyles}>
-                            <InputLabel>Area</InputLabel>
-                            <Select
-                                {...register("areaId", { required: "Area is required" })}
-                                label="Area"
-                            >
-                                <MenuItem value="">Select Area</MenuItem>
-                                {areas?.map((area) => (
-                                    <MenuItem key={area._id} value={area._id}>{area.name}</MenuItem>
-                                ))}
-                            </Select>
-                            {errors.area && <FormHelperText>{errors.area.message}</FormHelperText>}
-                        </FormControl>
-
-                        <TextField fullWidth label="Longitude and latitude"
-                            {...register("longitude_latitude", validations.cityValidation)}
-                            error={!!errors.longitude_latitude}
-                            helperText={errors.longitude_latitude?.message}
-                            variant="outlined" sx={inputStyles} />
-
-
-                        <div >
-                            <label >Select HORDING URL</label>
-                            <input type="file" {...register("image")}></input>
-                        </div>
-
-
-
-                    </Box>
-                </Box>
-            </Container >
-        </>
-    );
-}
-const inputStyles = {
-    mb: 2,
-    '& .MuiInputBase-input': { color: "white" },
-    '& .MuiInputLabel-root': { color: "white" },
-    '& .MuiInputLabel-root.Mui-focused': { color: "white" },
-    '& .MuiOutlinedInput-root': {
-        '& fieldset': { borderColor: "white" },
-        '&:hover fieldset': { borderColor: "white" },
-        '&.Mui-focused fieldset': { borderColor: "white" },
+  const validations = {
+    titleValidation: {
+      required: { value: true, message: "Title is required" },
+      minLength: { value: 3, message: "Title should contain enough characters" }
     },
-    '& .MuiOutlinedInput-notchedOutline': { borderColor: "white !important" },
-    '& .MuiSvgIcon-root': { color: "white" }
+    descriptionValidation: {
+      required: { value: true, message: "Description is required" },
+      minLength: { value: 10, message: "Should contain at least 10 characters" }
+    },
+    targetValidation: {
+      required: { value: true, message: "Target Audience is required" }
+    },
+    cityValidation: {
+      required: { value: true, message: "Field is required" }
+    },
+    adTypeValidation: {
+      required: { value: true, message: "Ad Type is required" }
+    },
+    adDurationValidation: {
+      required: { value: true, message: "Duration is required" }
+    },
+    budgetValidation: {
+      required: { value: true, message: "Budget is required" }
+    },
+  };
+
+  return (
+    <>
+      <CssBaseline />
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          minHeight: "100vh",
+          background: "linear-gradient(120deg, #0A192F 60%, #17375E 100%)",
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          py: 6,
+          position: "relative",
+        }}
+      >
+        {/* Back Button at Top Left */}
+        <Box
+          sx={{
+            position: "fixed",
+            top: 32,
+            left: 32,
+            zIndex: 1201,
+          }}
+        >
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            sx={{
+              borderRadius: "30px",
+              fontWeight: 600,
+              letterSpacing: 1,
+              borderColor: "#21cbf3",
+              color: "#21cbf3",
+              background: "rgba(10,25,47,0.85)",
+              boxShadow: 2,
+              "&:hover": {
+                borderColor: "#1976d2",
+                background: "#e3f2fd",
+                color: "#1976d2",
+              },
+            }}
+            onClick={() => navigate("/dashboard")}
+          >
+            Back to Dashboard
+          </Button>
+        </Box>
+        <Fade in>
+          <Paper
+            elevation={8}
+            sx={{
+              width: "90%",
+              maxWidth: 1200,
+              minHeight: 700,
+              borderRadius: 5,
+              background: "linear-gradient(135deg, #112240 60%, #17375E 100%)",
+              border: "2px solid #1976d2",
+              boxShadow: 8,
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              overflow: "hidden",
+              mt: { xs: 8, md: 10 }, // Add margin-top to push form below the back button
+            }}
+          >
+            {/* Left - Form Section */}
+            <Box
+              sx={{
+                flex: 1.2,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                px: { xs: 3, md: 5 },
+                py: 5,
+                mt: { xs: 5, md: 3 }, // Extra margin-top for form content
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <CampaignIcon sx={{ color: "#21cbf3", fontSize: 38, mr: 1 }} />
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: "bold",
+                    textTransform: "uppercase",
+                    color: "#21cbf3",
+                    letterSpacing: 1,
+                  }}
+                >
+                  Advertisement Details
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 3, borderColor: "#1976d2" }} />
+
+              <form onSubmit={handleSubmit(handlerSubmit)} autoComplete="off">
+                <TextField
+                  fullWidth
+                  label="Title"
+                  {...register("title", validations.titleValidation)}
+                  error={!!errors.title}
+                  helperText={errors.title?.message}
+                  variant="outlined"
+                  sx={inputStyles}
+                  InputProps={{ style: { color: "#fff" } }}
+                  InputLabelProps={{ style: { color: "#fff" } }}
+                />
+
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Description"
+                  {...register("description", validations.descriptionValidation)}
+                  error={!!errors.description}
+                  helperText={errors.description?.message}
+                  variant="outlined"
+                  sx={inputStyles}
+                  InputProps={{ style: { color: "#fff" } }}
+                  InputLabelProps={{ style: { color: "#fff" } }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Target Audience"
+                  {...register("targetAudience", validations.targetValidation)}
+                  error={!!errors.targetAudience}
+                  helperText={errors.targetAudience?.message}
+                  variant="outlined"
+                  sx={inputStyles}
+                  InputProps={{ style: { color: "#fff" } }}
+                  InputLabelProps={{ style: { color: "#fff" } }}
+                />
+
+                <FormControl fullWidth error={!!errors.adType} sx={inputStyles}>
+                  <InputLabel sx={{ color: "#fff" }}>Ad Type</InputLabel>
+                  <Select
+                    label="Ad Type"
+                    {...register("adType", validations.adTypeValidation)}
+                    sx={{
+                      color: "#fff",
+                      ".MuiSvgIcon-root": { color: "#fff" },
+                    }}
+                  >
+                    <MenuItem value="Billboard">Billboard</MenuItem>
+                    <MenuItem value="Digital">Digital</MenuItem>
+                    <MenuItem value="Gantry">Gantry</MenuItem>
+                    <MenuItem value="Unipole">Unipole</MenuItem>
+                  </Select>
+                  {errors.adType && <FormHelperText>{errors.adType.message}</FormHelperText>}
+                </FormControl>
+
+                <TextField
+                  fullWidth
+                  label="Dimensions"
+                  {...register("adDimensions", validations.cityValidation)}
+                  error={!!errors.adDimensions}
+                  helperText={errors.adDimensions?.message}
+                  variant="outlined"
+                  sx={inputStyles}
+                  InputProps={{ style: { color: "#fff" } }}
+                  InputLabelProps={{ style: { color: "#fff" } }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Ad Duration (Days)"
+                  {...register("adDuration", validations.adDurationValidation)}
+                  error={!!errors.adDuration}
+                  helperText={errors.adDuration?.message}
+                  variant="outlined"
+                  sx={inputStyles}
+                  InputProps={{ style: { color: "#fff" } }}
+                  InputLabelProps={{ style: { color: "#fff" } }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Budget ($)"
+                  {...register("budget", validations.budgetValidation)}
+                  error={!!errors.budget}
+                  helperText={errors.budget?.message}
+                  variant="outlined"
+                  sx={inputStyles}
+                  InputProps={{ style: { color: "#fff" } }}
+                  InputLabelProps={{ style: { color: "#fff" } }}
+                />
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  disabled={loading}
+                  sx={{
+                    background: "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+                    fontWeight: "bold",
+                    fontSize: "1rem",
+                    mt: 2,
+                    borderRadius: "30px",
+                    py: 1.3,
+                    boxShadow: "0 4px 20px rgba(25,118,210,0.10)",
+                    letterSpacing: 1,
+                    "&:hover": {
+                      background: "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
+                    },
+                  }}
+                  startIcon={<CampaignIcon />}
+                >
+                  {loading ? "Posting..." : "Submit Advertisement"}
+                </Button>
+              </form>
+            </Box>
+
+            {/* Right - Location & Image Section */}
+            <Box
+              sx={{
+                flex: 1,
+                px: { xs: 3, md: 5 },
+                py: 5,
+                background: "rgba(33,203,243,0.04)",
+                borderLeft: { md: "2px solid rgba(33,203,243,0.15)" },
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                mt: { xs: 5, md: 3 }, // Extra margin-top for right section as well
+              }}
+            >
+              <Typography
+                variant="h5"
+                sx={{
+                  mb: 2,
+                  color: "#21cbf3",
+                  fontWeight: "bold",
+                  letterSpacing: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <LocationOnIcon sx={{ color: "#21cbf3" }} />
+                Location & Media
+              </Typography>
+
+              {/* State Dropdown */}
+              <FormControl fullWidth error={!!errors.stateId} sx={inputStyles}>
+                <InputLabel sx={{ color: "#fff" }}>State</InputLabel>
+                <Select
+                  {...register("stateId", { required: "State is required" })}
+                  onChange={(e) => {
+                    setValue("stateId", e.target.value);
+                    getCityByStateId(e.target.value);
+                  }}
+                  label="State"
+                  sx={{ color: "#fff", ".MuiSvgIcon-root": { color: "#fff" } }}
+                  defaultValue=""
+                >
+                  <MenuItem value="">Select State</MenuItem>
+                  {states?.map((state) => (
+                    <MenuItem key={state._id} value={state._id}>{state.name}</MenuItem>
+                  ))}
+                </Select>
+                {errors.stateId && <FormHelperText>{errors.stateId.message}</FormHelperText>}
+              </FormControl>
+
+              {/* City Dropdown */}
+              <FormControl fullWidth error={!!errors.cityId} sx={inputStyles}>
+                <InputLabel sx={{ color: "#fff" }}>City</InputLabel>
+                <Select
+                  {...register("cityId", { required: "City is required" })}
+                  onChange={(e) => {
+                    setValue("cityId", e.target.value);
+                    getAreaByCityId(e.target.value);
+                  }}
+                  label="City"
+                  sx={{ color: "#fff", ".MuiSvgIcon-root": { color: "#fff" } }}
+                  defaultValue=""
+                >
+                  <MenuItem value="">Select City</MenuItem>
+                  {cities?.map((city) => (
+                    <MenuItem key={city._id} value={city._id}>{city.name}</MenuItem>
+                  ))}
+                </Select>
+                {errors.cityId && <FormHelperText>{errors.cityId.message}</FormHelperText>}
+              </FormControl>
+
+              {/* Area Dropdown */}
+              <FormControl fullWidth error={!!errors.areaId} sx={inputStyles}>
+                <InputLabel sx={{ color: "#fff" }}>Area</InputLabel>
+                <Select
+                  {...register("areaId", { required: "Area is required" })}
+                  label="Area"
+                  sx={{ color: "#fff", ".MuiSvgIcon-root": { color: "#fff" } }}
+                  defaultValue=""
+                >
+                  <MenuItem value="">Select Area</MenuItem>
+                  {areas?.map((area) => (
+                    <MenuItem key={area._id} value={area._id}>{area.name}</MenuItem>
+                  ))}
+                </Select>
+                {errors.areaId && <FormHelperText>{errors.areaId.message}</FormHelperText>}
+              </FormControl>
+
+              <TextField
+                fullWidth
+                label="Longitude and Latitude"
+                {...register("longitude_latitude", validations.cityValidation)}
+                error={!!errors.longitude_latitude}
+                helperText={errors.longitude_latitude?.message}
+                variant="outlined"
+                sx={inputStyles}
+                InputProps={{ style: { color: "#fff" } }}
+                InputLabelProps={{ style: { color: "#fff" } }}
+              />
+
+              {/* Image Upload */}
+              <Box sx={{ width: "100%", mt: 2 }}>
+                <Typography sx={{ color: "#fff", mb: 1, fontWeight: 500 }}>
+                  Upload Hoarding Image
+                </Typography>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  fullWidth
+                  startIcon={<AddPhotoAlternateIcon />}
+                  sx={{
+                    borderColor: "#21cbf3",
+                    color: "#21cbf3",
+                    borderRadius: "20px",
+                    fontWeight: 600,
+                    letterSpacing: 1,
+                    py: 1.2,
+                    mb: 1,
+                    "&:hover": {
+                      borderColor: "#1976d2",
+                      background: "rgba(33,203,243,0.08)",
+                    },
+                  }}
+                >
+                  Select Image
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    {...register("image")}
+                    onChange={(e) => {
+                      handleImageChange(e);
+                      setValue("image", e.target.files);
+                    }}
+                  />
+                </Button>
+                {imagePreview && (
+                  <Box
+                    sx={{
+                      mt: 1,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: 180,
+                        borderRadius: 12,
+                        border: "2px solid #21cbf3",
+                        boxShadow: "0 2px 8px rgba(33,203,243,0.15)",
+                      }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </Paper>
+        </Fade>
+      </Container>
+    </>
+  );
+};
+
+const inputStyles = {
+  mb: 2,
+  '& .MuiInputBase-input': { color: "#fff" },
+  '& .MuiInputLabel-root': { color: "#fff" },
+  '& .MuiInputLabel-root.Mui-focused': { color: "#fff" },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: "#21cbf3" },
+    '&:hover fieldset': { borderColor: "#21cbf3" },
+    '&.Mui-focused fieldset': { borderColor: "#21cbf3" },
+  },
+  '& .MuiOutlinedInput-notchedOutline': { borderColor: "#21cbf3 !important" },
+  '& .MuiSvgIcon-root': { color: "#21cbf3" }
 };
 
 export default AdDetails2;

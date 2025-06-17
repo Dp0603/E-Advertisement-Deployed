@@ -1,156 +1,383 @@
-import { Button, Card, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, Typography } from '@mui/material'
-import React, { useEffect, useState } from 'react'
-import API from '../../../api/axios'
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  MenuItem,
+  Select,
+  Typography,
+  Box,
+  Grid,
+  Chip,
+  Tooltip,
+  Fade,
+  Divider,
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import API from "../../../api/axios";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import PersonIcon from "@mui/icons-material/Person";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import InfoIcon from "@mui/icons-material/Info";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import CancelIcon from "@mui/icons-material/Cancel";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export const ManageBookings = () => {
+  const [bookings, setBookings] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const navigate = useNavigate();
 
-    const [bookings, setBookings] = useState([]);
-    const [open, setOpen] = useState(false);
-    const [selectedBookingId, setSelectedBookingId] = useState(null);
-    const [selectedStatus, setSelectedStatus] = useState("");
+  useEffect(() => {
+    fetchBookings();
+    // eslint-disable-next-line
+  }, []);
 
-
-    useEffect(() => {
-        fetchBookings();
-    }, [])
-
-    const fetchBookings = async () => {
-        const res = await API.get("/getbookings");
-        console.log(res.data.data);
-        setBookings(res.data.data);
+  const fetchBookings = async () => {
+    try {
+      const res = await API.get("/getbookings");
+      setBookings(res.data.data);
+    } catch (error) {
+      toast.error("Failed to fetch bookings");
     }
+  };
 
-    const updateBookingData = async () => {
-        try {
-            const res = await API.put(`/updatebookingstatus/${selectedBookingId}`, { status: selectedStatus });
-            console.log(res.data);
-            fetchBookings();
-            handleCloseDialog();
-        } catch (error) {
-            console.log(error);
-        }
-
+  const updateBookingData = async () => {
+    try {
+      await API.put(`/updatebookingstatus/${selectedBookingId}`, {
+        status: selectedStatus,
+      });
+      toast.success("Booking status updated!");
+      fetchBookings();
+      handleCloseDialog();
+    } catch (error) {
+      toast.error("Failed to update booking status");
     }
+  };
 
+  const handleOpenDialog = (id) => {
+    setSelectedBookingId(id);
+    setOpen(true);
+  };
 
-    const handleOpenDialog = (id) => {
-        setSelectedBookingId(id);
-        setOpen(true);
-    }
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setSelectedBookingId(null);
+    setSelectedStatus("");
+  };
 
-    const handleCloseDialog = () => {
-        setOpen(false);
-        setSelectedBookingId(null);
-        setSelectedStatus("");
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(120deg, #0A192F 60%, #17375E 100%)",
+        py: 5,
+        px: { xs: 1, md: 4 },
+      }}
+    >
+      {/* Back/Home Button */}
+      <Button
+        variant="outlined"
+        startIcon={<ArrowBackIcon />}
+        sx={{
+          mb: 3,
+          borderRadius: "30px",
+          fontWeight: 600,
+          letterSpacing: 1,
+          borderColor: "#21cbf3",
+          color: "#21cbf3",
+          "&:hover": {
+            borderColor: "#1976d2",
+            background: "#e3f2fd",
+            color: "#1976d2",
+          },
+        }}
+        onClick={() => navigate("/advertiser/dashboard/:id")}
+      >
+        Back to Dashboard
+      </Button>
 
-    }
-    return (
-        <div
-            style={{
-                minHeight: "100vh",
-                backgroundColor: "#0A192F",
-                flexDirection: "row",
-                alignItems: "center",
-                padding: "20px"
-            }}
-        >
-            <Typography sx={{ textAlign: "center", color: "white" }} variant='h4'>AD BOOKINGS</Typography>
+      <Typography
+        variant="h4"
+        sx={{
+          textAlign: "center",
+          color: "#21cbf3",
+          fontWeight: "bold",
+          letterSpacing: 1,
+          mb: 4,
+          textTransform: "uppercase",
+        }}
+      >
+        <EventAvailableIcon
+          sx={{ mr: 1, fontSize: 36, verticalAlign: "middle" }}
+        />
+        AD BOOKINGS
+      </Typography>
 
-            {bookings.length > 0 ? (
-
-                bookings.map((detail) => (
-                    <Card key={detail._id}
-                        sx={{
-                            width: "30vw", mt: "20px", ml: "60px",
-                            borderRadius: "15px",
-                            background: "linear-gradient(135deg,rgb(42, 60, 136) 0%,#0A192F 100%)",
-                            color: "#fff",
-                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
-                            transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
-                            "&:hover": {
-                                transform: "scale(1.05)",
-                                boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.5)"
-                            }
-                        }}
+      <Grid container spacing={4} justifyContent="center">
+        {bookings.length > 0 ? (
+          bookings.map((detail) => (
+            <Grid item xs={12} sm={10} md={6} lg={4} key={detail._id}>
+              <Fade in>
+                <Card
+                  sx={{
+                    borderRadius: 4,
+                    background:
+                      "linear-gradient(135deg, #112240 60%, #17375E 100%)",
+                    color: "#fff",
+                    boxShadow: 6,
+                    minHeight: 340,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    transition: "transform 0.3s, box-shadow 0.3s",
+                    "&:hover": {
+                      transform: "scale(1.03)",
+                      boxShadow: 12,
+                      borderColor: "#21cbf3",
+                    },
+                  }}
+                >
+                  <CardContent>
+                    <Typography
+                      sx={{
+                        fontSize: "1.2rem",
+                        fontWeight: "bold",
+                        mb: 1,
+                        color: "#21cbf3",
+                        letterSpacing: 1,
+                      }}
                     >
-                        <CardContent>
-                            <Typography sx={{ fontSize: "1.2rem", fontWeight: "bold", mb: 1 }}>
-                                {detail.adId?.title}
-                            </Typography>
-                            <Typography sx={{ opacity: 0.9, fontSize: "0.9rem" }}>
-                                {detail.adId?.description}
-                            </Typography>
-                            <Typography sx={{ fontWeight: "bold", mt: 1 }}>
-                                Budget: <span style={{ color: "#ffd700" }}>{detail.adId?.budget} RS</span>
-                            </Typography>
-                            <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                Location: {detail.adId?.stateId.name}, {detail.adId?.cityId.name}
-                            </Typography>
-                            <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                Client: {detail.clientId?.name} ({detail.clientId?.email})
-                            </Typography>
-                            <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                Start Time: {new Date(detail?.startTime).toLocaleString()}
-                            </Typography>
-                            <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                End Time: {new Date(detail?.endTime).toLocaleString()}
-                            </Typography>
-                            <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                Display Frequency: {detail?.displayFrequency}
-                            </Typography>
-                            {detail?.specialPlacement && (
-                                <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                    Special Placement: {detail?.specialPlacement}
-                                </Typography>
-                            )}
-                            {detail.contactPerson && (
-                                <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                    Contact Person: {detail?.contactPerson}
-                                </Typography>
-                            )}
-                            {detail.specialInstructions && (
-                                <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                    Instructions: {detail?.specialInstructions}
-                                </Typography>
-                            )}
-                            <Typography sx={{ fontSize: "0.9rem", mt: 1 }}>
-                                Analytics Required: {detail?.analyticsRequired ? "Yes" : "No"}
-                            </Typography>
-                            <Typography sx={{ mt: 1, fontWeight: "bold", color: detail.status === "confirmed" ? "lightgreen" : "red" }}>
-                                Status: {detail?.status}
-                            </Typography>
+                      {detail.adId?.title}
+                    </Typography>
+                    <Typography
+                      sx={{ opacity: 0.9, fontSize: "0.98rem", mb: 1 }}
+                    >
+                      {detail.adId?.description}
+                    </Typography>
+                    <Divider sx={{ mb: 1, borderColor: "#21cbf3" }} />
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 1,
+                        mb: 1,
+                      }}
+                    >
+                      <Chip
+                        icon={<MonetizationOnIcon />}
+                        label={`${detail.adId?.budget} Rs`}
+                        color="success"
+                        size="small"
+                      />
+                      <Chip
+                        icon={<LocationOnIcon />}
+                        label={`${detail.adId?.stateId?.name}, ${detail.adId?.cityId?.name}`}
+                        color="primary"
+                        size="small"
+                      />
+                      <Chip
+                        icon={<AccessTimeIcon />}
+                        label={`Start: ${new Date(
+                          detail?.startTime
+                        ).toLocaleString()}`}
+                        color="info"
+                        size="small"
+                      />
+                      <Chip
+                        icon={<AccessTimeIcon />}
+                        label={`End: ${new Date(
+                          detail?.endTime
+                        ).toLocaleString()}`}
+                        color="info"
+                        size="small"
+                      />
+                    </Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 1,
+                        mb: 1,
+                      }}
+                    >
+                      <Chip
+                        icon={<PersonIcon />}
+                        label={`Client: ${detail.clientId?.name || ""}`}
+                        color="secondary"
+                        size="small"
+                      />
+                      <Chip
+                        icon={<InfoIcon />}
+                        label={
+                          detail?.displayFrequency
+                            ? `Display: ${detail.displayFrequency}`
+                            : ""
+                        }
+                        color="default"
+                        size="small"
+                      />
+                      {detail?.specialPlacement && (
+                        <Chip
+                          icon={<InfoIcon />}
+                          label={`Special: ${detail.specialPlacement}`}
+                          color="warning"
+                          size="small"
+                        />
+                      )}
+                      {detail.contactPerson && (
+                        <Chip
+                          icon={<PersonIcon />}
+                          label={`Contact: ${detail.contactPerson}`}
+                          color="secondary"
+                          size="small"
+                        />
+                      )}
+                      {detail.specialInstructions && (
+                        <Chip
+                          icon={<InfoIcon />}
+                          label={`Instructions: ${detail.specialInstructions}`}
+                          color="info"
+                          size="small"
+                        />
+                      )}
+                      <Chip
+                        icon={<InfoIcon />}
+                        label={`Analytics: ${
+                          detail?.analyticsRequired ? "Yes" : "No"
+                        }`}
+                        color={
+                          detail?.analyticsRequired ? "success" : "default"
+                        }
+                        size="small"
+                      />
+                    </Box>
+                    <Divider sx={{ my: 1, borderColor: "#21cbf3" }} />
+                    <Typography
+                      sx={{
+                        mt: 1,
+                        fontWeight: "bold",
+                        color:
+                          detail.status === "confirmed"
+                            ? "lightgreen"
+                            : detail.status === "rejected"
+                            ? "#ff5252"
+                            : "#ffd700",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        fontSize: "1.1rem",
+                      }}
+                    >
+                      Status:
+                      {detail.status === "confirmed" ? (
+                        <AssignmentTurnedInIcon sx={{ color: "lightgreen" }} />
+                      ) : detail.status === "rejected" ? (
+                        <CancelIcon sx={{ color: "#ff5252" }} />
+                      ) : (
+                        <InfoIcon sx={{ color: "#ffd700" }} />
+                      )}
+                      {detail?.status?.toUpperCase()}
+                    </Typography>
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: "flex-end", pb: 2, pr: 2 }}>
+                    <Tooltip title="Update Status" arrow>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="info"
+                        sx={{
+                          borderRadius: "20px",
+                          fontWeight: 600,
+                          letterSpacing: 1,
+                          borderColor: "#21cbf3",
+                          color: "#21cbf3",
+                          "&:hover": {
+                            borderColor: "#1976d2",
+                            background: "#e3f2fd",
+                            color: "#1976d2",
+                          },
+                        }}
+                        onClick={() => handleOpenDialog(detail?._id)}
+                      >
+                        Update Status
+                      </Button>
+                    </Tooltip>
+                  </CardActions>
+                </Card>
+              </Fade>
+            </Grid>
+          ))
+        ) : (
+          <Grid item xs={12}>
+            <Typography
+              sx={{ mt: 2, color: "gray", textAlign: "center" }}
+            ></Typography>
+          </Grid>
+        )}
+      </Grid>
 
-                        </CardContent>
-                        <CardActions><Button size='small' variant='outlined' onClick={() => handleOpenDialog(detail?._id)}>Update status</Button></CardActions>
-                    </Card>
-                ))
-            ) : (
-                <Typography sx={{ mt: 2, color: "gray" }}>No Bookings  available</Typography>
-            )}
-
-            <Dialog open={open} onclose={handleCloseDialog}>
-                <DialogTitle>
-                    <Typography>Update Ad Status</Typography>
-                    <DialogContent>
-                        <Typography>Select Status:</Typography>
-                        <Select
-                            value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
-                            fullWidth
-                        >
-                            <MenuItem value="confirmed">Accept</MenuItem>
-                            <MenuItem value="rejected">Reject</MenuItem>
-                        </Select>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseDialog}>close</Button>
-                        <Button onClick={updateBookingData} disabled={!selectedStatus}>Update status</Button>
-                    </DialogActions>
-                </DialogTitle>
-            </Dialog>
-
-
-        </div>
-
-    )
-}
+      <Dialog open={open} onClose={handleCloseDialog}>
+        <DialogTitle
+          sx={{
+            fontWeight: "bold",
+            color: "#1976d2",
+            letterSpacing: 1,
+            textAlign: "center",
+          }}
+        >
+          Update Ad Status
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 1 }}>Select Status:</Typography>
+          <Select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            fullWidth
+            sx={{
+              mb: 2,
+              color: "#1976d2",
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "#21cbf3" },
+            }}
+          >
+            <MenuItem value="confirmed">
+              <AssignmentTurnedInIcon sx={{ color: "green", mr: 1 }} />
+              Accept
+            </MenuItem>
+            <MenuItem value="rejected">
+              <CancelIcon sx={{ color: "#ff5252", mr: 1 }} />
+              Reject
+            </MenuItem>
+          </Select>
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, pr: 2 }}>
+          <Button
+            onClick={handleCloseDialog}
+            color="secondary"
+            variant="outlined"
+          >
+            Close
+          </Button>
+          <Button
+            onClick={updateBookingData}
+            disabled={!selectedStatus}
+            variant="contained"
+            color="primary"
+          >
+            Update Status
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
