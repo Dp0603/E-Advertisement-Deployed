@@ -1,44 +1,72 @@
 import React, { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import {
-  Card, Typography, Box, Select, MenuItem, FormControl, InputLabel, Button, IconButton
+  Card,
+  Typography,
+  Box,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  IconButton,
+  CircularProgress,
+  Paper,
+  Tooltip,
+  Fade,
+  Divider,
+  Avatar,
 } from "@mui/material";
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PersonIcon from "@mui/icons-material/Person";
+import EmailIcon from "@mui/icons-material/Email";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
-import { Link, useNavigate } from 'react-router-dom';
-import BrowseBg from "../assets/images/BrowseAdsBg.jpg";
+// import BrowseBg from "../assets/images/BrowseAdsBg.jpg";
 
-
-const StyledCard = styled(Card)({
+const StyledCard = styled(Card)(({ theme }) => ({
   display: "flex",
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "15px",
+  padding: "18px",
   width: "100%",
-  maxWidth: "600px",
-  boxShadow: "0px 2px 8px rgba(0,0,0,0.1)",
-  transition: "transform 0.2s ease-in-out",
+  maxWidth: "650px",
+  minHeight: "160px",
+  boxShadow: "0px 6px 24px 0 rgba(33,203,243,0.10)",
+  transition: "transform 0.18s, box-shadow 0.18s",
+  borderRadius: "18px",
+  background: "linear-gradient(135deg, #112240 60%, #17375E 100%)",
+  border: "2px solid #21cbf3",
+  color: "#fff",
   "&:hover": {
-    transform: "scale(1.02)",
-    boxShadow: "0px 4px 12px rgba(0,0,0,0.2)"
+    transform: "scale(1.025)",
+    boxShadow: "0px 12px 32px 0 rgba(33,203,243,0.18)",
+    borderColor: "#21cbf3",
   },
-  borderRadius: "10px",
-  backgroundColor: "#E3F2FD",
-});
+  [theme.breakpoints.down("sm")]: {
+    flexDirection: "column",
+    maxWidth: "98vw",
+    minHeight: "auto",
+    padding: "12px",
+  },
+}));
 
 const ImagePlaceholder = styled(Box)({
   width: "120px",
   height: "120px",
-  backgroundColor: "#f2f2f2",
+  background: "linear-gradient(135deg, #e3f2fd 60%, #f8fafc 100%)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  borderRadius: "8px",
+  borderRadius: "10px",
   fontSize: "14px",
-  color: "gray",
+  color: "#1976d2",
   fontWeight: "bold",
+  border: "1.5px solid #21cbf3",
 });
 
 export const BrowseAds = () => {
@@ -50,12 +78,17 @@ export const BrowseAds = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [loading, setLoading] = useState(true);
   const [savedAds, setSavedAds] = useState(new Set());
+  const [saving, setSaving] = useState("");
   const navigate = useNavigate();
+
+  // Get user from localStorage for profile card
+  const user = JSON.parse(localStorage.getItem("user")) || {};
 
   useEffect(() => {
     fetchAds();
     fetchSavedAds();
     getStates();
+    // eslint-disable-next-line
   }, []);
 
   const fetchAds = async () => {
@@ -74,27 +107,30 @@ export const BrowseAds = () => {
   const fetchSavedAds = async () => {
     try {
       const res = await API.get("/api/saved-ads");
-      setSavedAds(new Set(res.data.map(ad => ad._id)));
+      setSavedAds(new Set(res.data.map((ad) => ad._id)));
     } catch (error) {
       console.log(error);
     }
   };
 
   const toggleSaveAd = async (adId) => {
+    setSaving(adId);
     try {
       if (savedAds.has(adId)) {
         await API.delete(`/api/remove-ad/${adId}`);
-        setSavedAds(prev => {
+        setSavedAds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(adId);
           return newSet;
         });
       } else {
         await API.post("/api/save-ad", { adId });
-        setSavedAds(prev => new Set(prev).add(adId));
+        setSavedAds((prev) => new Set(prev).add(adId));
       }
     } catch (error) {
       console.log(error);
+    } finally {
+      setSaving("");
     }
   };
 
@@ -149,42 +185,185 @@ export const BrowseAds = () => {
   };
 
   return (
-    <Box sx={{
-      padding: "20px",
-      maxWidth: "100%",
-      margin: "auto",
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "flex-start",
-      backgroundImage: `url(${BrowseBg})`,
-      backgroundSize: "cover",
-      backgroundPosition: "top",
-      backgroundRepeat: "no-repeat"
-    }}>
-      <Typography variant="h5" sx={{ marginBottom: "20px", fontWeight: "bold", textAlign: "center" }}>
-        Browse Ads
-      </Typography>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        width: "100%",
+        background: "linear-gradient(120deg, #0A192F 60%, #17375E 100%)",
+        // backgroundImage: `url(${BrowseBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "top",
+        backgroundRepeat: "no-repeat",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        py: { xs: 4, md: 8 },
+        px: 2,
+      }}
+    >
+      {/* User Profile Card with Dashboard Button */}
+      <Paper
+        elevation={8}
+        sx={{
+          p: { xs: 3, md: 5 },
+          borderRadius: 4,
+          background: "linear-gradient(135deg, #112240 60%, #17375E 100%)",
+          border: "2px solid #21cbf3",
+          boxShadow: 8,
+          maxWidth: 700,
+          width: "100%",
+          mx: "auto",
+          mb: 5,
+          color: "#fff",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          <Avatar
+            sx={{
+              bgcolor: "#1976d2",
+              width: 80,
+              height: 80,
+              fontSize: 36,
+              fontWeight: "bold",
+              boxShadow: 2,
+            }}
+          >
+            {user.firstName ? (
+              user.firstName[0]
+            ) : (
+              <PersonIcon fontSize="large" />
+            )}
+          </Avatar>
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              sx={{ color: "#21cbf3" }}
+            >
+              {user.firstName} {user.lastName}
+            </Typography>
+            <Typography variant="body1" sx={{ color: "#21cbf3", mb: 1 }}>
+              <EmailIcon
+                sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }}
+              />
+              {user.email}
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#e3f2fd" }}>
+              <CalendarMonthIcon
+                sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }}
+              />
+              Joined:{" "}
+              {user.createdAt
+                ? new Date(user.createdAt).toLocaleDateString()
+                : "N/A"}
+            </Typography>
+          </Box>
+          <Button
+            component={Link}
+            to="/user/dashboard"
+            variant="contained"
+            startIcon={<DashboardIcon />}
+            sx={{
+              borderRadius: "30px",
+              fontWeight: 600,
+              background: "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+              color: "#fff",
+              px: 3,
+              boxShadow: 2,
+              "&:hover": {
+                background: "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
+                color: "#fff",
+              },
+            }}
+          >
+            Dashboard
+          </Button>
+        </Box>
+      </Paper>
+
+      <Paper
+        elevation={8}
+        sx={{
+          width: "100%",
+          maxWidth: 900,
+          mx: "auto",
+          mb: 4,
+          p: { xs: 2, md: 4 },
+          borderRadius: 5,
+          background: "linear-gradient(135deg, #112240 60%, #17375E 100%)",
+          border: "2px solid #21cbf3",
+          boxShadow: 8,
+          color: "#fff",
+          textAlign: "center",
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: "bold",
+            color: "#21cbf3",
+            mb: 1,
+            letterSpacing: 1,
+          }}
+        >
+          Browse Ads
+        </Typography>
+        <Typography variant="body1" sx={{ color: "#e3f2fd", mb: 2 }}>
+          Discover and book your favorite ads. Filter by state and city to find
+          the best options for you!
+        </Typography>
+        <Divider sx={{ borderColor: "#21cbf3", mb: 2 }} />
+      </Paper>
 
       {/* Filters */}
-      <Box sx={{ display: "flex", gap: 2, marginBottom: 3, justifyContent: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          marginBottom: 3,
+          justifyContent: "center",
+        }}
+      >
         <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel>State</InputLabel>
-          <Select value={selectedState} onChange={(e) => getCitiesByState(e.target.value)} label="State">
-            <MenuItem value="">All</MenuItem> {/* Default: Fetch all ads */}
+          <InputLabel sx={{ color: "#21cbf3" }}>State</InputLabel>
+          <Select
+            value={selectedState}
+            onChange={(e) => getCitiesByState(e.target.value)}
+            label="State"
+            sx={{
+              color: "#21cbf3",
+              background: "#112240",
+              borderRadius: 2,
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "#21cbf3" },
+            }}
+          >
+            <MenuItem value="">All</MenuItem>
             {states?.map((state) => (
-              <MenuItem key={state._id} value={state._id}>{state.name}</MenuItem>
+              <MenuItem key={state._id} value={state._id}>
+                {state.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
 
         <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel>City</InputLabel>
-          <Select value={selectedCity} onChange={(e) => filterAdsByCity(e.target.value)} label="City">
-            <MenuItem value="">All</MenuItem> {/* Default: Fetch ads for selected state */}
+          <InputLabel sx={{ color: "#21cbf3" }}>City</InputLabel>
+          <Select
+            value={selectedCity}
+            onChange={(e) => filterAdsByCity(e.target.value)}
+            label="City"
+            sx={{
+              color: "#21cbf3",
+              background: "#112240",
+              borderRadius: 2,
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "#21cbf3" },
+            }}
+          >
+            <MenuItem value="">All</MenuItem>
             {cities?.map((city) => (
-              <MenuItem key={city._id} value={city._id}>{city.name}</MenuItem>
+              <MenuItem key={city._id} value={city._id}>
+                {city.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -192,49 +371,178 @@ export const BrowseAds = () => {
 
       {/* Ads Grid */}
       {loading ? (
-        <Typography variant="h6" sx={{ textAlign: "center", width: "100%" }}>
-          Loading Ads...
-        </Typography>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+          <CircularProgress sx={{ color: "#21cbf3" }} />
+        </Box>
       ) : (
-        <Box sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(600px, 1fr))",
-          gap: "20px",
-          justifyContent: "center",
-        }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+            gap: "28px",
+            justifyContent: "center",
+            width: "100%",
+            maxWidth: 1100,
+          }}
+        >
           {filteredAds.length > 0 ? (
             filteredAds.map((ad) => (
-              <StyledCard key={ad._id}>
-                <Box sx={{ width: "120px", height: "120px", borderRadius: "8px", overflow: "hidden" }}>
-                  {ad.adUrl ? (
-                    <img
-                      src={ad.adUrl}
-                      alt={ad.title}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <ImagePlaceholder>No Image</ImagePlaceholder>
-                  )}
+              <Fade in key={ad._id}>
+                <StyledCard>
+                  {/* Ad Image */}
+                  <Box
+                    sx={{
+                      width: "120px",
+                      height: "120px",
+                      borderRadius: "10px",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      border: "1.5px solid #21cbf3",
+                      background: "#fff",
+                    }}
+                  >
+                    {ad.adUrl ? (
+                      <img
+                        src={ad.adUrl}
+                        alt={ad.title}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          borderRadius: "10px",
+                        }}
+                      />
+                    ) : (
+                      <ImagePlaceholder>No Image</ImagePlaceholder>
+                    )}
                   </Box>
-                  <Box sx={{ flex: 1, paddingLeft: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>{ad.title}</Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      {ad.cityId?.name || "City not available"}, {ad.areaId?.name || "Area not available"}
+                  {/* Ad Details */}
+                  <Box sx={{ flex: 1, pl: { xs: 0, sm: 3 }, minWidth: 0 }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: "bold",
+                        color: "#21cbf3",
+                        textOverflow: "ellipsis",
+                        overflow: "hidden",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {ad.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ marginTop: 1 }}>{ad.description}</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: "bold", marginTop: 1 }}>₹{ad.budget}</Typography>
-                    <Button variant="contained" color="primary" sx={{ marginTop: 2 }} onClick={() => navigate("/viewdetails/" + ad._id)}>View Details</Button>
-                    <Button variant="outlined" color="secondary" sx={{ marginTop: 2, marginLeft: 2 }} onClick={() => navigate("/bookings/" + ad._id)}>Book ad</Button>
+                    <Typography variant="body2" sx={{ color: "#e3f2fd" }}>
+                      {ad.cityId?.name || "City not available"},{" "}
+                      {ad.areaId?.name || "Area not available"}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        mt: 1,
+                        color: "#e3f2fd",
+                        maxHeight: 48,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {ad.description}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: "bold",
+                        mt: 1,
+                        color: "#21cbf3",
+                      }}
+                    >
+                      ₹{ad.budget}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        mt: 2,
+                        background:
+                          "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+                        color: "#fff",
+                        borderRadius: "30px",
+                        fontWeight: 600,
+                        px: 3,
+                        boxShadow: 2,
+                        "&:hover": {
+                          background:
+                            "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
+                          color: "#fff",
+                        },
+                      }}
+                      onClick={() => navigate("/viewdetails/" + ad._id)}
+                    >
+                      View Details
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      sx={{
+                        mt: 2,
+                        ml: 2,
+                        borderColor: "#21cbf3",
+                        color: "#21cbf3",
+                        borderRadius: "30px",
+                        fontWeight: 600,
+                        px: 3,
+                        "&:hover": {
+                          borderColor: "#1976d2",
+                          color: "#1976d2",
+                          background: "#e3f2fd",
+                        },
+                      }}
+                      onClick={() => navigate("/bookings/" + ad._id)}
+                    >
+                      Book Ad
+                    </Button>
                   </Box>
-
                   {/* Save Ad Icon */}
-                  <IconButton onClick={() => toggleSaveAd(ad._id)}>
-                    {savedAds.has(ad._id) ? <BookmarkIcon color="primary" /> : <BookmarkBorderIcon />}
-                  </IconButton>
-              </StyledCard>
+                  <Tooltip
+                    title={
+                      savedAds.has(ad._id) ? "Remove from Saved" : "Save Ad"
+                    }
+                    arrow
+                  >
+                    <span>
+                      <IconButton
+                        onClick={() => toggleSaveAd(ad._id)}
+                        disabled={saving === ad._id}
+                        sx={{
+                          ml: 2,
+                          background: "rgba(33,203,243,0.08)",
+                          color: "#fff",
+                          "&:hover": {
+                            background: "#21cbf3",
+                            color: "#fff",
+                          },
+                          borderRadius: "50%",
+                          width: 48,
+                          height: 48,
+                        }}
+                      >
+                        {saving === ad._id ? (
+                          <CircularProgress
+                            size={24}
+                            sx={{ color: "#21cbf3" }}
+                          />
+                        ) : savedAds.has(ad._id) ? (
+                          <BookmarkIcon color="primary" />
+                        ) : (
+                          <BookmarkBorderIcon />
+                        )}
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </StyledCard>
+              </Fade>
             ))
           ) : (
-            <Typography variant="h6" sx={{ textAlign: "center", width: "100%" }}>
+            <Typography
+              variant="h6"
+              sx={{ textAlign: "center", width: "100%", color: "#e3f2fd" }}
+            >
               No Ads Available
             </Typography>
           )}

@@ -137,4 +137,53 @@ const updateuserPassword = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 }
-module.exports = { registerUser, loginUser, getUsersById, updateuserProfile, updateuserPassword };
+
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const existingUser = await user.findOne({ email });
+        if (!existingUser) {
+            return res.status(404).json({ message: "Email not found" });
+        }
+
+        // Create a reset token (valid for 1 hour)
+        const resetToken = jwt.sign(
+            { id: existingUser._id, email: existingUser.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
+        // You can use your frontend URL here
+        const resetLink = `https://your-frontend-url/reset-password/${resetToken}`;
+
+        // Send email
+        await mailMiddleware.sendingMail(
+            existingUser.email,
+            "Password Reset",
+            `Click the link to reset your password: ${resetLink}`
+        );
+
+        res.status(200).json({ message: "Reset link sent to your email." });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await user.findByIdAndUpdate(decoded.id, { password: hashedPassword });
+
+        res.status(200).json({ message: "Password reset successful." });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: "Invalid or expired token." });
+    }
+};
+
+module.exports = { registerUser, loginUser, getUsersById, updateuserProfile, updateuserPassword, forgotPassword, resetPassword };

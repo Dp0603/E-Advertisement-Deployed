@@ -614,6 +614,21 @@ export const WelcomeHome = () => {
           </Grid>
         </Container>
       </Box>
+
+      {/* Copyright Footer */}
+      <Box
+        sx={{
+          py: 2,
+          px: 2,
+          background: "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+          color: "#fff",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+          © {new Date().getFullYear()} AdVerse. All rights reserved.
+        </Typography>
+      </Box>
     </>
   );
 };

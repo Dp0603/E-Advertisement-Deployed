@@ -24,10 +24,10 @@ import { UserProfile } from "./components/user/profile/UserProfile";
 import { UserChangePassword } from "./components/user/profile/UserChangePassword";
 import { UserInfo } from "./components/user/profile/UserInfo";
 import BookedAds from "./components/user/BookedAds";
+import ForgotPassword from "./components/pages/ForgotPassword";
+import ResetPassword from "./components/pages/ResetPassword";
 
 function App() {
-
-
   return (
     <>
       <div>
@@ -37,6 +37,8 @@ function App() {
           <Route path='/' element={<WelcomeHome />}></Route>
           <Route path='/register/:role' element={<Registration />}></Route>
           <Route path='/login' element={<Login />}></Route>
+          <Route path='/forgot-password' element={<ForgotPassword />}></Route>
+          <Route path='/reset-password' element={<ResetPassword />}></Route>
           <Route path='/specificregister' element={<SpecificRegister />}></Route>
           <Route path='/advertiser/dashboard/:id' element={<Dashboard />}></Route>
           <Route path="/managebookings" element={<ManageBookings />}></Route>
@@ -58,7 +60,6 @@ function App() {
           <Route path="/screenings2" element={<Screens2 />}></Route>
           <Route path="/saved-ads" element={<SavedAds />}></Route>
           <Route path="/getbookings" element={<BookedAds />}></Route>
-
         </Routes>
         <ToastContainer />
       </div >

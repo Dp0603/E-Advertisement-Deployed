@@ -19,6 +19,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { Link as RouterLink } from "react-router-dom";
 
 const Login = () => {
   const {
@@ -213,6 +214,21 @@ const Login = () => {
                   ),
                 }}
               />
+
+              {/* Forgot Password Link */}
+              <Box sx={{ textAlign: "right", mt: 1 }}>
+                <RouterLink
+                  to="/forgot-password"
+                  style={{
+                    color: "#1976d2",
+                    fontWeight: 500,
+                    textDecoration: "none",
+                  }}
+                >
+                  Forgot Password?
+                </RouterLink>
+              </Box>
+
               <Button
                 type="submit"
                 variant="contained"

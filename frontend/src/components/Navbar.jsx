@@ -18,7 +18,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import { Link as ScrollLink } from "react-scroll";
 import AdbIcon from "@mui/icons-material/Adb"; // Example logo icon
 
@@ -34,8 +34,93 @@ export const Navbar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const location = useLocation();
+
+  // Paths where only login/signup/back-to-home should show
+  const authPaths = [
+    "/login",
+    "/register",
+    "/register/:role",
+    "/specificregister",
+    "/forgot-password",
+    "/reset-password",
+    "/resetpassword",
+    "/resetpassword/:token",
+  ];
+
+  // Check if current path is an auth page (support dynamic params)
+  const isAuthPage = authPaths.some((path) =>
+    path.includes(":")
+      ? location.pathname.startsWith(path.split(":")[0])
+      : location.pathname === path
+  );
 
   const handleDrawerToggle = () => setDrawerOpen((prev) => !prev);
+
+  // Auth Navbar (Login/Signup/Back to Home)
+  const AuthNavbarContent = (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Button
+        component={RouterLink}
+        to="/"
+        variant="outlined"
+        sx={{
+          borderColor: "#1976d2",
+          color: "#1976d2",
+          fontWeight: 600,
+          borderRadius: "30px",
+          letterSpacing: 1,
+          px: 3,
+          "&:hover": {
+            borderColor: "#1565c0",
+            color: "#1565c0",
+            background: "#e3f2fd",
+          },
+        }}
+      >
+        Back to Home
+      </Button>
+      <Button
+        component={RouterLink}
+        to="/login"
+        variant="outlined"
+        sx={{
+          borderColor: "#1976d2",
+          color: "#1976d2",
+          fontWeight: 600,
+          borderRadius: "30px",
+          letterSpacing: 1,
+          px: 3,
+          "&:hover": {
+            borderColor: "#1565c0",
+            color: "#1565c0",
+            background: "#e3f2fd",
+          },
+        }}
+      >
+        Login
+      </Button>
+      <Button
+        component={RouterLink}
+        to="/specificregister"
+        variant="contained"
+        sx={{
+          background: "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+          color: "#fff",
+          fontWeight: 600,
+          borderRadius: "30px",
+          letterSpacing: 1,
+          px: 3,
+          boxShadow: "0 4px 20px rgba(25,118,210,0.08)",
+          "&:hover": {
+            background: "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
+          },
+        }}
+      >
+        Sign Up
+      </Button>
+    </Box>
+  );
 
   return (
     <AppBar
@@ -89,8 +174,10 @@ export const Navbar = () => {
           </Typography>
         </Box>
 
-        {/* Center Links or Drawer Toggle */}
-        {isMobile ? (
+        {/* Auth Navbar */}
+        {isAuthPage ? (
+          AuthNavbarContent
+        ) : isMobile ? (
           <>
             <IconButton
               edge="start"
