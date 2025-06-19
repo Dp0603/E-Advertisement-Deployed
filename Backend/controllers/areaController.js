@@ -18,7 +18,6 @@ const addArea = async (req, res) => {
             data: area
         });
     } catch (err) {
-        console.log(err);
         res.status(500).json({
             message: err
         });
@@ -27,7 +26,8 @@ const addArea = async (req, res) => {
 
 const getAreas = async (req, res) => {
     try {
-        const areas = await areaModel.find().populate("cityId").populate("stateId");
+        // Sort areas alphabetically by name
+        const areas = await areaModel.find().populate("cityId").populate("stateId").sort({ name: 1 });
         res.status(200).json({
             message: "All Areas",
             data: areas
@@ -42,13 +42,11 @@ const getAreas = async (req, res) => {
 const getAreaByCity = async (req, res) => {
     cityId = req.params.cityId;
     try {
-        const areas = await areaModel.find({ cityId: cityId });
+        const areas = await areaModel.find({ cityId: cityId }).sort({ name: 1 });
         res.status(200).json({ message: "Areas fetched ", data: areas });
-
     } catch (error) {
-        console.log(error);
         res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 
 module.exports = { addArea, getAreas, getAreaByCity };

@@ -16,7 +16,8 @@ const addCity = async (req, res) => {
 
 const getCities = async (req, res) => {
     try {
-        const cities = await cityModel.find().populate("stateId");
+        // Sort cities alphabetically by name
+        const cities = await cityModel.find().populate("stateId").sort({ name: 1 });
         res.status(200).json({
             message: "All cities",
             data: cities
@@ -30,13 +31,10 @@ const getCities = async (req, res) => {
 
 const getCityByStateId = async (req, res) => {
     stateId = req.params.stateId;
-    console.log(stateId);
     try {
-        const cities = await cityModel.find({ stateId: stateId });
-        console.log(cities);
+        const cities = await cityModel.find({ stateId: stateId }).sort({ name: 1 });
         res.status(200).json({ message: "Fetched succesfully", data: cities });
     } catch (error) {
-        console.error("Server error", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };

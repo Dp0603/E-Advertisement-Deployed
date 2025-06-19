@@ -16,20 +16,18 @@ const addState = async (req, res) => {
 
 
 const getAllStates = async (req, res) => {
-
     try {
-
-        const states = await stateModel.find();
+        // Sort states alphabetically by name
+        const states = await stateModel.find().sort({ name: 1 });
         res.status(200).json({
             message: "All States Fetched Successfully.",
             data: states
         });
     } catch (err) {
-
         res.status(500).json({
             message: err
         });
     }
-}
+};
 
 module.exports = { addState, getAllStates }
