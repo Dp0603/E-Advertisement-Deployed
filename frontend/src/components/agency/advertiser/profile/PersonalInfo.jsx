@@ -1,15 +1,26 @@
-import { Box, Typography, Avatar, Button, TextField, Paper, Divider, Fade } from '@mui/material';
-import { deepOrange } from '@mui/material/colors';
-import React, { useEffect, useState } from 'react';
+import {
+  Box,
+  Typography,
+  Avatar,
+  Button,
+  TextField,
+  Paper,
+  Divider,
+  Fade,
+} from "@mui/material";
+import { deepOrange } from "@mui/material/colors";
+import React, { useEffect, useState } from "react";
 import API from "../../../../api/axios";
 import { jwtDecode } from "jwt-decode";
-import { useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
 import EmailIcon from "@mui/icons-material/Email";
 import PersonIcon from "@mui/icons-material/Person";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
 
 export const PersonalInfo = () => {
   const token = localStorage.getItem("token");
@@ -18,7 +29,13 @@ export const PersonalInfo = () => {
   const [user, setUser] = useState({ data: {} });
   const [isEdit, setIsEdit] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUserById();
@@ -64,8 +81,35 @@ export const PersonalInfo = () => {
         justifyContent: "center",
         py: { xs: 4, md: 8 },
         px: 2,
+        position: "relative",
       }}
     >
+      {/* Back to Dashboard Button */}
+      <Button
+        variant="outlined"
+        startIcon={<ArrowBackIcon />}
+        sx={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          borderRadius: 3,
+          fontWeight: 600,
+          borderColor: "#21cbf3",
+          color: "#21cbf3",
+          background: "#112240",
+          px: 3,
+          zIndex: 10,
+          "&:hover": {
+            borderColor: "#1976d2",
+            color: "#1976d2",
+            background: "#e3f2fd",
+          },
+        }}
+        onClick={() => navigate("/dashboard")}
+      >
+        Back to Dashboard
+      </Button>
+
       <Fade in>
         <Paper
           elevation={10}
@@ -80,46 +124,88 @@ export const PersonalInfo = () => {
             boxShadow: 8,
             color: "#fff",
             position: "relative",
+            overflow: "visible",
           }}
         >
           {/* Profile Header */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 3, mb: 3 }}>
-            <Avatar
-              sx={{
-                bgcolor: deepOrange[500],
-                height: 90,
-                width: 90,
-                fontWeight: "bold",
-                fontSize: "38px",
-                boxShadow: 2,
-                border: "2px solid #21cbf3",
-              }}
-            >
-              {user.data?.firstName ? user.data.firstName[0] : <PersonIcon fontSize="large" />}
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h5" fontWeight="bold" sx={{ color: "#21cbf3" }}>
-                {user.data?.firstName} {user.data?.lastName}
-              </Typography>
-              <Typography variant="body1" sx={{ color: "#e3f2fd", display: "flex", alignItems: "center", mt: 0.5 }}>
-                <EmailIcon sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }} />
-                {user.data?.email}
-              </Typography>
+          <Box sx={{ position: "relative", mb: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+              <Avatar
+                sx={{
+                  bgcolor: deepOrange[500],
+                  height: 90,
+                  width: 90,
+                  fontWeight: "bold",
+                  fontSize: "38px",
+                  boxShadow: 2,
+                  border: "2px solid #21cbf3",
+                }}
+              >
+                {user.data?.firstName ? (
+                  user.data.firstName[0]
+                ) : (
+                  <PersonIcon fontSize="large" />
+                )}
+              </Avatar>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  variant="h5"
+                  fontWeight="bold"
+                  sx={{
+                    color: "#21cbf3",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {user.data?.firstName} {user.data?.lastName}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "#e3f2fd",
+                    display: "flex",
+                    alignItems: "center",
+                    mt: 0.5,
+                    minWidth: 0,
+                  }}
+                >
+                  <EmailIcon
+                    sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }}
+                  />
+                  <span
+                    style={{
+                      wordBreak: "break-all",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      display: "block",
+                      maxWidth: 200,
+                    }}
+                  >
+                    {user.data?.email}
+                  </span>
+                </Typography>
+              </Box>
             </Box>
             {!isEdit && (
               <Button
                 variant="contained"
                 startIcon={<EditIcon />}
                 sx={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
                   borderRadius: "30px",
                   fontWeight: 600,
-                  background: "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+                  background:
+                    "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
                   color: "#fff",
                   px: 4,
                   minWidth: 80,
                   boxShadow: 2,
                   "&:hover": {
-                    background: "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
+                    background:
+                      "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
                     color: "#fff",
                   },
                 }}
@@ -183,7 +269,7 @@ export const PersonalInfo = () => {
                 readOnly: !isEdit,
                 disableUnderline: true,
               }}
-              onChange={e => setValue("firstName", e.target.value)}
+              onChange={(e) => setValue("firstName", e.target.value)}
             />
 
             <TextField
@@ -235,7 +321,7 @@ export const PersonalInfo = () => {
                 readOnly: !isEdit,
                 disableUnderline: true,
               }}
-              onChange={e => setValue("lastName", e.target.value)}
+              onChange={(e) => setValue("lastName", e.target.value)}
             />
 
             <TextField
@@ -293,7 +379,7 @@ export const PersonalInfo = () => {
                 readOnly: !isEdit,
                 disableUnderline: true,
               }}
-              onChange={e => setValue("email", e.target.value)}
+              onChange={(e) => setValue("email", e.target.value)}
             />
 
             {isEdit && (
@@ -305,12 +391,14 @@ export const PersonalInfo = () => {
                   sx={{
                     borderRadius: "30px",
                     fontWeight: 600,
-                    background: "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+                    background:
+                      "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
                     color: "#fff",
                     px: 3,
                     boxShadow: 2,
                     "&:hover": {
-                      background: "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
+                      background:
+                        "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
                       color: "#fff",
                     },
                   }}
@@ -345,4 +433,4 @@ export const PersonalInfo = () => {
       </Fade>
     </Box>
   );
-}
+};

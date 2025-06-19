@@ -11,6 +11,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import PersonIcon from "@mui/icons-material/Person";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import LogoutIcon from "@mui/icons-material/Logout";
+import EmailIcon from "@mui/icons-material/Email";
 
 export const AdvertiserProfile = () => {
   const location = useLocation();
@@ -91,8 +92,25 @@ export const AdvertiserProfile = () => {
           >
             {advertiser.firstName} {advertiser.lastName}
           </Typography>
-          <Typography variant="body2" sx={{ color: "#e3f2fd", mb: 2 }}>
-            {advertiser.email}
+          <Typography
+            variant="body2"
+            sx={{
+              color: "#e3f2fd",
+              mb: 2,
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              wordBreak: "break-all",
+              fontSize: 15,
+              lineHeight: 1.4,
+              px: 1,
+              maxWidth: 230,
+              mx: "auto",
+            }}
+          >
+            <EmailIcon sx={{ fontSize: 18, mr: 1, verticalAlign: "middle" }} />
+            <span style={{ wordBreak: "break-all" }}>{advertiser.email}</span>
           </Typography>
           <Divider sx={{ width: "100%", borderColor: "#21cbf3", mb: 3 }} />
 

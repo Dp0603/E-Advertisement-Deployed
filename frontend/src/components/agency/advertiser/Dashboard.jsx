@@ -17,6 +17,7 @@ import DashboardSidebar from "./DashboardSidebar";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 export const Dashboard = () => {
   const { id } = useParams();
@@ -43,6 +44,12 @@ export const Dashboard = () => {
       console.log(error);
       navigate("/login");
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+    window.location.reload();
   };
 
   // Card data for easy mapping
@@ -77,6 +84,36 @@ export const Dashboard = () => {
     <>
       <CssBaseline />
       <DashboardSidebar />
+      {/* Logout Button Top Right */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: 32,
+          right: 32,
+          zIndex: 1200,
+        }}
+      >
+        <Button
+          variant="outlined"
+          startIcon={<LogoutIcon />}
+          sx={{
+            borderRadius: 3,
+            fontWeight: 600,
+            borderColor: "#D32F2F",
+            color: "#fff",
+            background: "rgba(211,47,47,0.08)",
+            px: 3,
+            "&:hover": {
+              background: "#D32F2F",
+              color: "#fff",
+              borderColor: "#D32F2F",
+            },
+          }}
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
+      </Box>
       <Box
         sx={{
           minHeight: "100vh",

@@ -254,7 +254,7 @@ const Login = () => {
               <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
                 Don't have an account?{" "}
                 <Link
-                  to="/register/:role"
+                  to="/specificregister"
                   style={{ color: "#1976d2", fontWeight: 500 }}
                 >
                   Register here

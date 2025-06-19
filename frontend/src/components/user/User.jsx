@@ -25,7 +25,8 @@ import EmailIcon from "@mui/icons-material/Email";
 import PersonIcon from "@mui/icons-material/Person";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import { Link } from "react-router-dom";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import UserSidebar from "./UserSidebar";
 
@@ -52,6 +53,7 @@ export const User = () => {
   const [savedAds, setSavedAds] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Fetch saved ads and bookings
   useEffect(() => {
@@ -73,10 +75,47 @@ export const User = () => {
     else setLoading(false);
   }, [user._id]);
 
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+    window.location.reload();
+  };
+
   return (
     <>
       <CssBaseline />
       <UserSidebar />
+
+      {/* Logout Button Top Right */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: 32,
+          right: 32,
+          zIndex: 1200,
+        }}
+      >
+        <Button
+          variant="outlined"
+          startIcon={<LogoutIcon />}
+          sx={{
+            borderRadius: 3,
+            fontWeight: 600,
+            borderColor: "#D32F2F",
+            color: "#fff",
+            background: "rgba(211,47,47,0.08)",
+            px: 3,
+            "&:hover": {
+              background: "#D32F2F",
+              color: "#fff",
+              borderColor: "#D32F2F",
+            },
+          }}
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
+      </Box>
 
       <Box
         sx={{
