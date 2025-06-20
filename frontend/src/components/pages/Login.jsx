@@ -10,8 +10,9 @@ import {
   InputAdornment,
   IconButton,
   Paper,
+  Snackbar,
+  Alert,
 } from "@mui/material";
-import { toast, Bounce } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { Navbar } from "../Navbar";
@@ -31,6 +32,17 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Modern MUI Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const handleSnackbarClose = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
   const submitHandler = async (data) => {
     setLoading(true);
     try {
@@ -40,7 +52,7 @@ const Login = () => {
       if (token && user) {
         localStorage.removeItem("token");
         localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user)); // Store user details
+        localStorage.setItem("user", JSON.stringify(user));
       } else {
         console.error("No token received from the server");
       }
@@ -48,38 +60,29 @@ const Login = () => {
       const decoded = jwtDecode(token);
       const userRole = decoded.role;
       const userId = decoded.id;
-      if (userRole === "advertiser") {
-        navigate(`/advertiser/dashboard/${userId}`);
-      } else {
-        navigate("/user/dashboard");
-      }
-      toast.success("Successfully logged in!", {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
+      setSnackbar({
+        open: true,
+        message: "Successfully logged in!",
+        severity: "success",
       });
+      setTimeout(() => {
+        if (userRole === "advertiser") {
+          navigate(`/advertiser/dashboard/${userId}`);
+        } else {
+          navigate("/user/dashboard");
+        }
+      }, 1200);
     } catch (error) {
-      toast.error("Login Failed. Please check your credentials", {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
+      setSnackbar({
+        open: true,
+        message: "Login Failed. Please check your credentials",
+        severity: "error",
       });
     } finally {
       setLoading(false);
     }
   };
+
   const validations = {
     emailValidation: {
       required: {
@@ -264,6 +267,33 @@ const Login = () => {
           </Paper>
         </Container>
       </Box>
+      {/* Modern Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            width: "100%",
+            fontWeight: 600,
+            fontSize: "1rem",
+            background:
+              snackbar.severity === "success"
+                ? "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)"
+                : "linear-gradient(90deg, #d32f2f 60%, #ff7961 100%)",
+            color: "#fff",
+            letterSpacing: 0.5,
+            boxShadow: 3,
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
