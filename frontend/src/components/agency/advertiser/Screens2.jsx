@@ -30,7 +30,6 @@ import API from "../../../api/axios";
 import { jwtDecode } from "jwt-decode";
 import EditIcon from "@mui/icons-material/Edit";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
@@ -39,6 +38,8 @@ import GroupIcon from "@mui/icons-material/Group";
 import AspectRatioIcon from "@mui/icons-material/AspectRatio";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext";
+import { useLoader } from "../../../context/LoaderContext";
 
 export const Screens2 = () => {
   const [ads, setAds] = useState([]);
@@ -50,11 +51,20 @@ export const Screens2 = () => {
   const [specificAd, setSpecificAds] = useState([]);
   const [editOpen, setEditOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
-  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm();
   const token = localStorage.getItem("token");
   const decodedtoken = jwtDecode(token);
   const advertiserId = decodedtoken.id;
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
+  const { showLoader, hideLoader } = useLoader();
 
   useEffect(() => {
     fetchAds();
@@ -62,16 +72,19 @@ export const Screens2 = () => {
   }, [advertiserId]);
 
   const fetchAds = async () => {
+    showLoader();
     try {
       const res = await API.get(`/ads/${advertiserId}`);
       setAds(res.data);
     } catch (error) {
-      console.log(error);
+      showToast("Failed to fetch ads", "error");
+    } finally {
+      hideLoader();
     }
   };
 
   const handleEditOpen = (adId) => {
-    const adToEdit = ads.find(ad => ad._id === adId);
+    const adToEdit = ads.find((ad) => ad._id === adId);
     setSelectedAd(adToEdit);
     if (adToEdit) {
       setValue("title", adToEdit.title);
@@ -84,7 +97,7 @@ export const Screens2 = () => {
       setValue("budget", adToEdit.budget);
       if (adToEdit.stateId) setValue("stateId", adToEdit.stateId._id);
       if (adToEdit.cityId) setValue("cityId", adToEdit.cityId._id);
-      if (adToEdit.areaId) setValue("areaId", adToEdit.areaId._id)
+      if (adToEdit.areaId) setValue("areaId", adToEdit.areaId._id);
     }
     setEditOpen(true);
   };
@@ -96,7 +109,7 @@ export const Screens2 = () => {
 
   const handleViewOpen = (adId) => {
     if (!viewOpen) {
-      const adToView = ads.find(ad => ad._id === adId);
+      const adToView = ads.find((ad) => ad._id === adId);
       setSelectedAd(adToView);
       setViewOpen(true);
     }
@@ -105,7 +118,7 @@ export const Screens2 = () => {
   const handleViewCLose = () => {
     setViewOpen(false);
     reset();
-  }
+  };
 
   const getStates = async () => {
     try {
@@ -181,39 +194,48 @@ export const Screens2 = () => {
         formData.append("image", data.image[0]);
       }
 
-      await API.put(`/advertiser/updateadswithfile/${selectedAd._id}`, formData);
+      await API.put(
+        `/advertiser/updateadswithfile/${selectedAd._id}`,
+        formData
+      );
       handleEditClose();
       await fetchAds();
-      toast.success("Ad details updated successfully!");
+      showToast("Ad details updated successfully!", "success");
     } catch (error) {
-      toast.error("Failed to update ad details");
+      showToast("Failed to update ad details", "error");
     }
   };
 
   const validations = {
     titleValidation: {
       required: { value: true, message: "Title is required" },
-      minLength: { value: 3, message: "Title should contain at least 3 characters" }
+      minLength: {
+        value: 3,
+        message: "Title should contain at least 3 characters",
+      },
     },
     descriptionValidation: {
       required: { value: true, message: "Description is required" },
-      minLength: { value: 10, message: "Should contain at least 10 characters" }
+      minLength: {
+        value: 10,
+        message: "Should contain at least 10 characters",
+      },
     },
     targetValidation: {
-      required: { value: true, message: "This field is required" }
+      required: { value: true, message: "This field is required" },
     },
     cityValidation: {
-      required: { value: true, message: "Field is required" }
+      required: { value: true, message: "Field is required" },
     },
     adTypeValidation: {
-      required: { value: true, message: "Field is required" }
+      required: { value: true, message: "Field is required" },
     },
     adDurationValidation: {
-      required: { value: true, message: "Duration is required" }
+      required: { value: true, message: "Duration is required" },
     },
     budgetValidation: {
-      required: { value: true, message: "Budget is required" }
-    }
+      required: { value: true, message: "Budget is required" },
+    },
   };
 
   const displayAds = filterActive ? specificAd : ads;
@@ -244,7 +266,13 @@ export const Screens2 = () => {
             color: "#1976d2",
           },
         }}
-        onClick={() => navigate("/dashboard")}
+        onClick={() => {
+          if (advertiserId) {
+            navigate(`/advertiser/dashboard/${advertiserId}`);
+          } else {
+            navigate("/login");
+          }
+        }}
       >
         Back to Dashboard
       </Button>
@@ -276,7 +304,9 @@ export const Screens2 = () => {
         <FormControl sx={{ minWidth: 180 }}>
           <InputLabel sx={{ color: "#21cbf3" }}>State</InputLabel>
           <Select
-            onChange={(e) => { getCityByStateId(e.target.value); }}
+            onChange={(e) => {
+              getCityByStateId(e.target.value);
+            }}
             label="State"
             defaultValue=""
             sx={{
@@ -286,7 +316,9 @@ export const Screens2 = () => {
           >
             <MenuItem value="">All</MenuItem>
             {states?.map((state) => (
-              <MenuItem key={state._id} value={state._id}>{state.name}</MenuItem>
+              <MenuItem key={state._id} value={state._id}>
+                {state.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -306,7 +338,9 @@ export const Screens2 = () => {
           >
             <MenuItem value="">All</MenuItem>
             {cities?.map((city) => (
-              <MenuItem key={city._id} value={city._id}>{city.name}</MenuItem>
+              <MenuItem key={city._id} value={city._id}>
+                {city.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -320,7 +354,8 @@ export const Screens2 = () => {
                 <Card
                   sx={{
                     borderRadius: 4,
-                    background: "linear-gradient(135deg, #112240 60%, #17375E 100%)",
+                    background:
+                      "linear-gradient(135deg, #112240 60%, #17375E 100%)",
                     color: "#fff",
                     boxShadow: 6,
                     minHeight: 340,
@@ -346,13 +381,17 @@ export const Screens2 = () => {
                       </Avatar>
                     }
                     title={
-                      <Typography variant="h6" sx={{ fontWeight: "bold", color: "#21cbf3" }}>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: "bold", color: "#21cbf3" }}
+                      >
                         {ad.title}
                       </Typography>
                     }
                     subheader={
                       <Typography variant="body2" sx={{ color: "#21cbf3" }}>
-                        {ad.cityId?.name || "City N/A"}, {ad.areaId?.name || "Area N/A"}
+                        {ad.cityId?.name || "City N/A"},{" "}
+                        {ad.areaId?.name || "Area N/A"}
                       </Typography>
                     }
                     action={
@@ -389,10 +428,30 @@ export const Screens2 = () => {
                     </Typography>
                     <Divider sx={{ my: 1, borderColor: "#21cbf3" }} />
                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                      <Chip icon={<GroupIcon />} label={ad.targetAudience} color="primary" size="small" />
-                      <Chip icon={<AccessTimeIcon />} label={`${ad.adDuration} days`} color="info" size="small" />
-                      <Chip icon={<MonetizationOnIcon />} label={`${ad.budget} Rs`} color="success" size="small" />
-                      <Chip icon={<AspectRatioIcon />} label={ad.adDimensions} color="secondary" size="small" />
+                      <Chip
+                        icon={<GroupIcon />}
+                        label={ad.targetAudience}
+                        color="primary"
+                        size="small"
+                      />
+                      <Chip
+                        icon={<AccessTimeIcon />}
+                        label={`${ad.adDuration} days`}
+                        color="info"
+                        size="small"
+                      />
+                      <Chip
+                        icon={<MonetizationOnIcon />}
+                        label={`${ad.budget} Rs`}
+                        color="success"
+                        size="small"
+                      />
+                      <Chip
+                        icon={<AspectRatioIcon />}
+                        label={ad.adDimensions}
+                        color="secondary"
+                        size="small"
+                      />
                     </Box>
                   </CardContent>
                 </Card>
@@ -434,7 +493,11 @@ export const Screens2 = () => {
           {selectedAd?.title}
         </DialogTitle>
         <DialogContent dividers sx={{ p: 3 }}>
-          <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", md: "row" }}
+            gap={3}
+          >
             <Box flex="0 0 45%" display="flex" justifyContent="center">
               <CardMedia
                 component="img"
@@ -451,27 +514,64 @@ export const Screens2 = () => {
               />
             </Box>
             <Box flex="1" display="flex" flexDirection="column" gap={2}>
-              <Typography variant="body1" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: "bold", color: "#1976d2" }}
+              >
                 {selectedAd?.description}
               </Typography>
               <Divider sx={{ my: 1 }} />
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                <Chip icon={<LocationOnIcon />} label={selectedAd?.cityId?.name || "City N/A"} color="primary" />
-                <Chip icon={<LocationOnIcon />} label={selectedAd?.areaId?.name || "Area N/A"} color="info" />
-                <Chip icon={<CampaignIcon />} label={selectedAd?.adType} color="secondary" />
-                <Chip icon={<GroupIcon />} label={selectedAd?.targetAudience} color="success" />
-                <Chip icon={<AccessTimeIcon />} label={`${selectedAd?.adDuration} days`} color="warning" />
-                <Chip icon={<MonetizationOnIcon />} label={`${selectedAd?.budget} Rs`} color="error" />
-                <Chip icon={<AspectRatioIcon />} label={selectedAd?.adDimensions} color="default" />
+                <Chip
+                  icon={<LocationOnIcon />}
+                  label={selectedAd?.cityId?.name || "City N/A"}
+                  color="primary"
+                />
+                <Chip
+                  icon={<LocationOnIcon />}
+                  label={selectedAd?.areaId?.name || "Area N/A"}
+                  color="info"
+                />
+                <Chip
+                  icon={<CampaignIcon />}
+                  label={selectedAd?.adType}
+                  color="secondary"
+                />
+                <Chip
+                  icon={<GroupIcon />}
+                  label={selectedAd?.targetAudience}
+                  color="success"
+                />
+                <Chip
+                  icon={<AccessTimeIcon />}
+                  label={`${selectedAd?.adDuration} days`}
+                  color="warning"
+                />
+                <Chip
+                  icon={<MonetizationOnIcon />}
+                  label={`${selectedAd?.budget} Rs`}
+                  color="error"
+                />
+                <Chip
+                  icon={<AspectRatioIcon />}
+                  label={selectedAd?.adDimensions}
+                  color="default"
+                />
               </Box>
               <Typography variant="body2" sx={{ color: "#1976d2", mt: 2 }}>
-                <strong>Longitude & Latitude:</strong> {selectedAd?.longitude_latitude || "N/A"}
+                <strong>Longitude & Latitude:</strong>{" "}
+                {selectedAd?.longitude_latitude || "N/A"}
               </Typography>
             </Box>
           </Box>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
-          <Button onClick={handleViewCLose} color="primary" variant="contained" sx={{ px: 3, py: 1 }}>
+          <Button
+            onClick={handleViewCLose}
+            color="primary"
+            variant="contained"
+            sx={{ px: 3, py: 1 }}
+          >
             Close
           </Button>
         </DialogActions>
@@ -515,7 +615,10 @@ export const Screens2 = () => {
                   multiline
                   rows={2}
                   label="Description"
-                  {...register("description", validations.descriptionValidation)}
+                  {...register(
+                    "description",
+                    validations.descriptionValidation
+                  )}
                   error={!!errors.description}
                   helperText={errors.description?.message}
                   variant="outlined"
@@ -544,7 +647,9 @@ export const Screens2 = () => {
                     <MenuItem value="Gantry">Gantry</MenuItem>
                     <MenuItem value="Unipole">Unipole</MenuItem>
                   </Select>
-                  {errors.adType && <FormHelperText>{errors.adType.message}</FormHelperText>}
+                  {errors.adType && (
+                    <FormHelperText>{errors.adType.message}</FormHelperText>
+                  )}
                 </FormControl>
 
                 <TextField
@@ -578,7 +683,11 @@ export const Screens2 = () => {
               </Box>
 
               <Box sx={{ flex: 1 }}>
-                <FormControl fullWidth error={!!errors.stateId} sx={inputStyles}>
+                <FormControl
+                  fullWidth
+                  error={!!errors.stateId}
+                  sx={inputStyles}
+                >
                   <InputLabel>State</InputLabel>
                   <Select
                     {...register("stateId", { required: "State is required" })}
@@ -592,10 +701,14 @@ export const Screens2 = () => {
                   >
                     <MenuItem value="">Select State</MenuItem>
                     {states?.map((state) => (
-                      <MenuItem key={state._id} value={state._id}>{state.name}</MenuItem>
+                      <MenuItem key={state._id} value={state._id}>
+                        {state.name}
+                      </MenuItem>
                     ))}
                   </Select>
-                  {errors.stateId && <FormHelperText>{errors.stateId.message}</FormHelperText>}
+                  {errors.stateId && (
+                    <FormHelperText>{errors.stateId.message}</FormHelperText>
+                  )}
                 </FormControl>
 
                 <FormControl fullWidth error={!!errors.cityId} sx={inputStyles}>
@@ -611,10 +724,14 @@ export const Screens2 = () => {
                   >
                     <MenuItem value="">Select City</MenuItem>
                     {cities?.map((city) => (
-                      <MenuItem key={city._id} value={city._id}>{city.name}</MenuItem>
+                      <MenuItem key={city._id} value={city._id}>
+                        {city.name}
+                      </MenuItem>
                     ))}
                   </Select>
-                  {errors.cityId && <FormHelperText>{errors.cityId.message}</FormHelperText>}
+                  {errors.cityId && (
+                    <FormHelperText>{errors.cityId.message}</FormHelperText>
+                  )}
                 </FormControl>
 
                 <FormControl fullWidth error={!!errors.areaId} sx={inputStyles}>
@@ -626,16 +743,23 @@ export const Screens2 = () => {
                   >
                     <MenuItem value="">Select Area</MenuItem>
                     {areas?.map((area) => (
-                      <MenuItem key={area._id} value={area._id}>{area.name}</MenuItem>
+                      <MenuItem key={area._id} value={area._id}>
+                        {area.name}
+                      </MenuItem>
                     ))}
                   </Select>
-                  {errors.areaId && <FormHelperText>{errors.areaId.message}</FormHelperText>}
+                  {errors.areaId && (
+                    <FormHelperText>{errors.areaId.message}</FormHelperText>
+                  )}
                 </FormControl>
 
                 <TextField
                   fullWidth
                   label="Longitude and latitude"
-                  {...register("longitude_latitude", validations.cityValidation)}
+                  {...register(
+                    "longitude_latitude",
+                    validations.cityValidation
+                  )}
                   error={!!errors.longitude_latitude}
                   helperText={errors.longitude_latitude?.message}
                   variant="outlined"
@@ -651,7 +775,11 @@ export const Screens2 = () => {
           </DialogContent>
 
           <DialogActions sx={{ px: 3, pb: 3 }}>
-            <Button onClick={handleEditClose} color="secondary" variant="outlined">
+            <Button
+              onClick={handleEditClose}
+              color="secondary"
+              variant="outlined"
+            >
               Cancel
             </Button>
             <Button type="submit" variant="contained" color="primary">
@@ -666,16 +794,16 @@ export const Screens2 = () => {
 
 const inputStyles = {
   mb: 2,
-  '& .MuiInputBase-input': { color: "#fff" },
-  '& .MuiInputLabel-root': { color: "#21cbf3" },
-  '& .MuiInputLabel-root.Mui-focused': { color: "#21cbf3" },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: "#21cbf3" },
-    '&:hover fieldset': { borderColor: "#21cbf3" },
-    '&.Mui-focused fieldset': { borderColor: "#21cbf3" },
+  "& .MuiInputBase-input": { color: "#fff" },
+  "& .MuiInputLabel-root": { color: "#21cbf3" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#21cbf3" },
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": { borderColor: "#21cbf3" },
+    "&:hover fieldset": { borderColor: "#21cbf3" },
+    "&.Mui-focused fieldset": { borderColor: "#21cbf3" },
   },
-  '& .MuiOutlinedInput-notchedOutline': { borderColor: "#21cbf3" },
-  '& .MuiSvgIcon-root': { color: "#21cbf3" }
+  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#21cbf3" },
+  "& .MuiSvgIcon-root": { color: "#21cbf3" },
 };
 
 export default Screens2;

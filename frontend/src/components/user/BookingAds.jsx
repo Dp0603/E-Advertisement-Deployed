@@ -20,6 +20,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import API from "../../api/axios";
+import { useToast } from "../../context/ToastContext"; // Add this
 
 export const BookingAds = () => {
     const { register, handleSubmit } = useForm();
@@ -30,6 +31,7 @@ export const BookingAds = () => {
     const [error, setError] = useState("");
     const [bookingData, setBookingData] = useState(null);
     const [processingPayment, setProcessingPayment] = useState(false);
+    const { showToast } = useToast(); // Add this
 
     useEffect(() => {
         const fetchAdDetails = async () => {
@@ -188,8 +190,7 @@ export const BookingAds = () => {
 
             setProcessingPayment(false);
             toast.success("Booking successful! 🎉");
-
-
+            showToast("Booking successful!", "success");
             setBookingData(null);
 
 
@@ -197,6 +198,7 @@ export const BookingAds = () => {
             setProcessingPayment(false);
             console.error("Booking failed:", error);
             toast.error("Booking failed. Please try again.");
+            showToast("Booking failed.", "error");
         }
     };
 

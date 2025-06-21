@@ -30,7 +30,7 @@ const menuItems = [
   {
     text: "Payment",
     icon: <PaymentIcon sx={{ color: "#21cbf3" }} />,
-    path: "/advertiser/payment",
+    path: "/advertiserprofile/payment",
     tooltip: "Manage your payments",
   },
   {

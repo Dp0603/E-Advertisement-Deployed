@@ -21,6 +21,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import EmailIcon from "@mui/icons-material/Email";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import PersonIcon from "@mui/icons-material/Person";
+import { useToast } from "../../context/ToastContext"; // Add this
 
 const StyledCard = styled(Card)(({ theme }) => ({
   display: "flex",
@@ -69,6 +70,7 @@ const SavedAds = () => {
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState("");
   const navigate = useNavigate();
+  const { showToast } = useToast(); // Add this
 
   // Get user from localStorage for profile card
   const user = JSON.parse(localStorage.getItem("user")) || {};
@@ -95,10 +97,21 @@ const SavedAds = () => {
     try {
       await API.delete(`/api/remove-ad/${adId}`);
       setSavedAds((prev) => prev.filter((ad) => ad._id !== adId));
+      showToast("Ad removed from saved!", "success"); // Show success toast
     } catch (error) {
       console.error("Error removing saved ad:", error);
+      showToast("Failed to remove ad.", "error"); // Show error toast
     } finally {
       setRemoving("");
+    }
+  };
+
+  const handleSaveAd = async (adId) => {
+    try {
+      // ...API call...
+      showToast("Ad saved!", "success");
+    } catch (error) {
+      showToast("Failed to save ad.", "error");
     }
   };
 

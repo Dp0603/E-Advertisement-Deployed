@@ -13,7 +13,8 @@ import React, { useEffect, useState } from "react";
 import API from "../../../../api/axios";
 import { jwtDecode } from "jwt-decode";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { useToast } from "../../../../context/ToastContext";
+import { useLoader } from "../../../../context/LoaderContext";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -36,6 +37,8 @@ export const PersonalInfo = () => {
     setValue,
   } = useForm();
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const { showLoader, hideLoader } = useLoader();
 
   useEffect(() => {
     fetchUserById();
@@ -55,18 +58,21 @@ export const PersonalInfo = () => {
       const res = await API.get(`/auth/advertiser/${advertiserId}`);
       setUser(res.data);
     } catch (error) {
-      toast.error("Failed to fetch advertiser info");
+      showToast("Error fetching user data", "error");
     }
   };
 
   const submitHandler = async (data) => {
+    showLoader();
     try {
       await API.put(`/auth/updateprofile/${advertiserId}`, data);
-      toast.success("Details successfully updated!");
+      showToast("Details successfully updated!", "success");
       setIsEdit(false);
       fetchUserById();
     } catch (error) {
-      toast.error("Error updating details");
+      showToast("Error updating details", "error");
+    } finally {
+      hideLoader();
     }
   };
 
@@ -105,7 +111,13 @@ export const PersonalInfo = () => {
             background: "#e3f2fd",
           },
         }}
-        onClick={() => navigate("/dashboard")}
+        onClick={() => {
+          if (advertiserId) {
+            navigate(`/advertiser/dashboard/${advertiserId}`);
+          } else {
+            navigate("/login");
+          }
+        }}
       >
         Back to Dashboard
       </Button>

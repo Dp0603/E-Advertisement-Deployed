@@ -11,7 +11,6 @@ import {
   InputAdornment,
   IconButton,
 } from "@mui/material";
-import { toast } from "react-toastify";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Navbar } from "../Navbar";
 import PersonIcon from "@mui/icons-material/Person";
@@ -19,6 +18,7 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { useToast } from "../../context/ToastContext"; // Add this
 
 const NAVBAR_HEIGHT = 72; // Match Login
 
@@ -32,6 +32,7 @@ const Registration = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { role } = useParams();
+  const { showToast } = useToast(); // Add this
 
   const validations = {
     nameValidation: {
@@ -79,14 +80,10 @@ const Registration = () => {
       role === "advertiser" ? "/auth/register/advertiser" : "/auth/register";
     try {
       const res = await API.post(endpoint, data);
-      toast.success("Registration successful!");
+      showToast("Registration successful!", "success");
       navigate("/login");
     } catch (error) {
-      if (error.response?.data?.message && error.status === 400) {
-        toast.error("User already exists");
-      } else {
-        toast.error("Registration failed");
-      }
+      showToast("Registration failed. Please try again.", "error");
     }
     setLoading(false);
   };

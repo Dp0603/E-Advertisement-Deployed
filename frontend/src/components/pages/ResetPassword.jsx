@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import API from "../../api/axios";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useToast } from "../../context/ToastContext";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import {
   Box,
@@ -18,6 +18,7 @@ const ResetPassword = () => {
   const { token } = useParams();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const {
     register,
     handleSubmit,
@@ -33,18 +34,19 @@ const ResetPassword = () => {
       });
       setLoading(false);
       if (res.data.message) {
-        toast.success("Password reset successful! Please login.");
+        showToast("Password reset successful!", "success");
         setTimeout(() => {
           navigate("/login");
         }, 2000);
       } else {
-        toast.error(res.data.message || "Something went wrong.");
+        showToast(res.data.message || "Something went wrong.", "error");
       }
     } catch (error) {
       setLoading(false);
-      toast.error(
+      showToast(
         error?.response?.data?.message ||
-          "Invalid or expired link. Please try again."
+          "Invalid or expired link. Please try again.",
+        "error"
       );
     }
   };

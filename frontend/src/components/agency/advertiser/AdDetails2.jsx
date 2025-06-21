@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -15,19 +15,29 @@ import {
   Divider,
   Fade,
   Tooltip,
-} from '@mui/material';
-import { useForm } from 'react-hook-form';
-import API from '../../../api/axios';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+} from "@mui/material";
+import { useForm } from "react-hook-form";
+import API from "../../../api/axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import CampaignIcon from '@mui/icons-material/Campaign';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useToast } from "../../../context/ToastContext";
+import { useLoader } from "../../../context/LoaderContext";
 
 export const AdDetails2 = () => {
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+  const token = localStorage.getItem("token");
+  const decodedtoken = jwtDecode(token);
+  const advertiserId = decodedtoken.id;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [states, setStates] = useState([]);
@@ -58,15 +68,16 @@ export const AdDetails2 = () => {
     setAreas(res.data.data);
   };
 
+  const { showToast } = useToast();
+  const { showLoader, hideLoader } = useLoader();
+
   useEffect(() => {
     getStates();
   }, []);
 
   const handlerSubmit = async (data) => {
     setLoading(true);
-    const token = localStorage.getItem("token");
-    const decodedtoken = jwtDecode(token);
-    const advertiserId = decodedtoken.id;
+    showLoader();
 
     try {
       const formData = new FormData();
@@ -85,12 +96,17 @@ export const AdDetails2 = () => {
       formData.append("advertiserId", advertiserId);
 
       await API.post("/advertiser/createadswithfile", formData);
-      toast.success("Ad details created successfully!");
+      showToast("Ad created successfully!", "success");
       navigate("/screenings2");
     } catch (error) {
-      toast.error("Error submitting ad: " + (error.response?.data?.message || error.message));
+      showToast(
+        "Error creating ad: " +
+          (error.response?.data?.message || error.message),
+        "error"
+      );
     }
     setLoading(false);
+    hideLoader();
   };
 
   const handleImageChange = (e) => {
@@ -104,26 +120,32 @@ export const AdDetails2 = () => {
   const validations = {
     titleValidation: {
       required: { value: true, message: "Title is required" },
-      minLength: { value: 3, message: "Title should contain enough characters" }
+      minLength: {
+        value: 3,
+        message: "Title should contain enough characters",
+      },
     },
     descriptionValidation: {
       required: { value: true, message: "Description is required" },
-      minLength: { value: 10, message: "Should contain at least 10 characters" }
+      minLength: {
+        value: 10,
+        message: "Should contain at least 10 characters",
+      },
     },
     targetValidation: {
-      required: { value: true, message: "Target Audience is required" }
+      required: { value: true, message: "Target Audience is required" },
     },
     cityValidation: {
-      required: { value: true, message: "Field is required" }
+      required: { value: true, message: "Field is required" },
     },
     adTypeValidation: {
-      required: { value: true, message: "Ad Type is required" }
+      required: { value: true, message: "Ad Type is required" },
     },
     adDurationValidation: {
-      required: { value: true, message: "Duration is required" }
+      required: { value: true, message: "Duration is required" },
     },
     budgetValidation: {
-      required: { value: true, message: "Budget is required" }
+      required: { value: true, message: "Budget is required" },
     },
   };
 
@@ -169,7 +191,13 @@ export const AdDetails2 = () => {
                 color: "#1976d2",
               },
             }}
-            onClick={() => navigate("/dashboard")}
+            onClick={() => {
+              if (advertiserId) {
+                navigate(`/advertiser/dashboard/${advertiserId}`);
+              } else {
+                navigate("/login");
+              }
+            }}
           >
             Back to Dashboard
           </Button>
@@ -237,7 +265,10 @@ export const AdDetails2 = () => {
                   multiline
                   rows={2}
                   label="Description"
-                  {...register("description", validations.descriptionValidation)}
+                  {...register(
+                    "description",
+                    validations.descriptionValidation
+                  )}
                   error={!!errors.description}
                   helperText={errors.description?.message}
                   variant="outlined"
@@ -273,7 +304,9 @@ export const AdDetails2 = () => {
                     <MenuItem value="Gantry">Gantry</MenuItem>
                     <MenuItem value="Unipole">Unipole</MenuItem>
                   </Select>
-                  {errors.adType && <FormHelperText>{errors.adType.message}</FormHelperText>}
+                  {errors.adType && (
+                    <FormHelperText>{errors.adType.message}</FormHelperText>
+                  )}
                 </FormControl>
 
                 <TextField
@@ -318,7 +351,8 @@ export const AdDetails2 = () => {
                   fullWidth
                   disabled={loading}
                   sx={{
-                    background: "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+                    background:
+                      "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
                     fontWeight: "bold",
                     fontSize: "1rem",
                     mt: 2,
@@ -327,7 +361,8 @@ export const AdDetails2 = () => {
                     boxShadow: "0 4px 20px rgba(25,118,210,0.10)",
                     letterSpacing: 1,
                     "&:hover": {
-                      background: "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
+                      background:
+                        "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
                     },
                   }}
                   startIcon={<CampaignIcon />}
@@ -383,10 +418,14 @@ export const AdDetails2 = () => {
                 >
                   <MenuItem value="">Select State</MenuItem>
                   {states?.map((state) => (
-                    <MenuItem key={state._id} value={state._id}>{state.name}</MenuItem>
+                    <MenuItem key={state._id} value={state._id}>
+                      {state.name}
+                    </MenuItem>
                   ))}
                 </Select>
-                {errors.stateId && <FormHelperText>{errors.stateId.message}</FormHelperText>}
+                {errors.stateId && (
+                  <FormHelperText>{errors.stateId.message}</FormHelperText>
+                )}
               </FormControl>
 
               {/* City Dropdown */}
@@ -404,10 +443,14 @@ export const AdDetails2 = () => {
                 >
                   <MenuItem value="">Select City</MenuItem>
                   {cities?.map((city) => (
-                    <MenuItem key={city._id} value={city._id}>{city.name}</MenuItem>
+                    <MenuItem key={city._id} value={city._id}>
+                      {city.name}
+                    </MenuItem>
                   ))}
                 </Select>
-                {errors.cityId && <FormHelperText>{errors.cityId.message}</FormHelperText>}
+                {errors.cityId && (
+                  <FormHelperText>{errors.cityId.message}</FormHelperText>
+                )}
               </FormControl>
 
               {/* Area Dropdown */}
@@ -421,10 +464,14 @@ export const AdDetails2 = () => {
                 >
                   <MenuItem value="">Select Area</MenuItem>
                   {areas?.map((area) => (
-                    <MenuItem key={area._id} value={area._id}>{area.name}</MenuItem>
+                    <MenuItem key={area._id} value={area._id}>
+                      {area.name}
+                    </MenuItem>
                   ))}
                 </Select>
-                {errors.areaId && <FormHelperText>{errors.areaId.message}</FormHelperText>}
+                {errors.areaId && (
+                  <FormHelperText>{errors.areaId.message}</FormHelperText>
+                )}
               </FormControl>
 
               <TextField
@@ -508,17 +555,16 @@ export const AdDetails2 = () => {
 
 const inputStyles = {
   mb: 2,
-  '& .MuiInputBase-input': { color: "#fff" },
-  '& .MuiInputLabel-root': { color: "#fff" },
-  '& .MuiInputLabel-root.Mui-focused': { color: "#fff" },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: "#21cbf3" },
-    '&:hover fieldset': { borderColor: "#21cbf3" },
-    '&.Mui-focused fieldset': { borderColor: "#21cbf3" },
+  "& .MuiInputBase-input": { color: "#fff" },
+  "& .MuiInputLabel-root": { color: "#fff" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#fff" },
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": { borderColor: "#21cbf3" },
+    "&:hover fieldset": { borderColor: "#21cbf3" },
+    "&.Mui-focused fieldset": { borderColor: "#21cbf3" },
   },
-  '& .MuiOutlinedInput-notchedOutline': { borderColor: "#21cbf3 !important" },
-  '& .MuiSvgIcon-root': { color: "#21cbf3" }
+  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#21cbf3 !important" },
+  "& .MuiSvgIcon-root": { color: "#21cbf3" },
 };
 
 export default AdDetails2;
-

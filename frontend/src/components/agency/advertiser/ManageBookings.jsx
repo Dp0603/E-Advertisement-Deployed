@@ -28,8 +28,9 @@ import InfoIcon from "@mui/icons-material/Info";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import CancelIcon from "@mui/icons-material/Cancel";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../context/ToastContext"; // (optional, if you want to use global toast)
+import { useLoader } from "../../../context/LoaderContext"; // (optional, if you want to use global loader)
 
 export const ManageBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -37,6 +38,15 @@ export const ManageBookings = () => {
   const [selectedBookingId, setSelectedBookingId] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  // Optional: Use global toast context if available
+  const { showToast } = useToast(); // <-- Use the hook if you have a global toast context
+  const { showLoader, hideLoader } = useLoader();
+
+  // Get user from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+  const advertiserId = user?._id || user?.id || localStorage.getItem("userId"); // fallback to userId from localStorage
 
   useEffect(() => {
     fetchBookings();
@@ -44,11 +54,16 @@ export const ManageBookings = () => {
   }, []);
 
   const fetchBookings = async () => {
+    setLoading(true);
+    showLoader();
     try {
       const res = await API.get("/getbookings");
       setBookings(res.data.data);
     } catch (error) {
-      toast.error("Failed to fetch bookings");
+      showToast("Failed to fetch bookings", "error");
+    } finally {
+      setLoading(false);
+      hideLoader();
     }
   };
 
@@ -57,11 +72,11 @@ export const ManageBookings = () => {
       await API.put(`/updatebookingstatus/${selectedBookingId}`, {
         status: selectedStatus,
       });
-      toast.success("Booking status updated!");
+      showToast("Booking status updated!", "success");
       fetchBookings();
       handleCloseDialog();
     } catch (error) {
-      toast.error("Failed to update booking status");
+      showToast("Failed to update booking status", "error");
     }
   };
 
@@ -102,7 +117,13 @@ export const ManageBookings = () => {
             color: "#1976d2",
           },
         }}
-        onClick={() => navigate("/advertiser/dashboard/:id")}
+        onClick={() => {
+          if (advertiserId) {
+            navigate(`/advertiser/dashboard/${advertiserId}`);
+          } else {
+            navigate("/login");
+          }
+        }}
       >
         Back to Dashboard
       </Button>
@@ -290,7 +311,9 @@ export const ManageBookings = () => {
                       {detail?.status?.toUpperCase()}
                     </Typography>
                   </CardContent>
-                  <CardActions sx={{ justifyContent: "flex-end", pb: 2, pr: 2 }}>
+                  <CardActions
+                    sx={{ justifyContent: "flex-end", pb: 2, pr: 2 }}
+                  >
                     <Tooltip title="Update Status" arrow>
                       <Button
                         size="small"
@@ -321,8 +344,15 @@ export const ManageBookings = () => {
         ) : (
           <Grid item xs={12}>
             <Typography
-              sx={{ mt: 2, color: "gray", textAlign: "center" }}
-            ></Typography>
+              sx={{
+                mt: 2,
+                color: "#ccc",
+                textAlign: "center",
+                fontSize: "1.1rem",
+              }}
+            >
+              No bookings available at the moment.
+            </Typography>
           </Grid>
         )}
       </Grid>

@@ -10,8 +10,6 @@ import {
   InputAdornment,
   IconButton,
   Paper,
-  Snackbar,
-  Alert,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -21,6 +19,7 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Link as RouterLink } from "react-router-dom";
+import { useToast } from "../../context/ToastContext"; // <-- Import the hook
 
 const Login = () => {
   const {
@@ -32,16 +31,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Modern MUI Snackbar state
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
-
-  const handleSnackbarClose = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
+  const { showToast } = useToast(); // <-- Use the hook
 
   const submitHandler = async (data) => {
     setLoading(true);
@@ -51,6 +41,11 @@ const Login = () => {
       const user = res.data?.user || res.data?.message?.user;
       if (token && user) {
         localStorage.removeItem("token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userRole");
+
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
       } else {
@@ -60,11 +55,10 @@ const Login = () => {
       const decoded = jwtDecode(token);
       const userRole = decoded.role;
       const userId = decoded.id;
-      setSnackbar({
-        open: true,
-        message: "Successfully logged in!",
-        severity: "success",
-      });
+
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("userRole", userRole);
+      showToast("Successfully logged in!", "success"); // <-- Use global toast
       setTimeout(() => {
         if (userRole === "advertiser") {
           navigate(`/advertiser/dashboard/${userId}`);
@@ -73,11 +67,7 @@ const Login = () => {
         }
       }, 1200);
     } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Login Failed. Please check your credentials",
-        severity: "error",
-      });
+      showToast("Login Failed. Please check your credentials", "error"); // <-- Use global toast
     } finally {
       setLoading(false);
     }
@@ -267,36 +257,8 @@ const Login = () => {
           </Paper>
         </Container>
       </Box>
-      {/* Modern Snackbar for feedback */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{
-            width: "100%",
-            fontWeight: 600,
-            fontSize: "1rem",
-            background:
-              snackbar.severity === "success"
-                ? "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)"
-                : "linear-gradient(90deg, #d32f2f 60%, #ff7961 100%)",
-            color: "#fff",
-            letterSpacing: 0.5,
-            boxShadow: 3,
-          }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 };
 
 export default Login;
-//Dhanush!@2807

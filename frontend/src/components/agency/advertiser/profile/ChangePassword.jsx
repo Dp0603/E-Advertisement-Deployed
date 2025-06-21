@@ -1,13 +1,28 @@
-import { Box, Button, TextField, Typography, Paper, Divider, Fade } from '@mui/material';
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Divider,
+  Fade,
+} from "@mui/material";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import API from "../../../../api/axios";
 import { jwtDecode } from "jwt-decode";
-import { toast } from 'react-toastify';
+import { useToast } from "../../../../context/ToastContext";
+import { useLoader } from "../../../../context/LoaderContext";
 
 export const ChangePassword = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
+  const { showLoader, hideLoader } = useLoader();
 
   const token = localStorage.getItem("token");
   const decodedToken = jwtDecode(token);
@@ -15,13 +30,18 @@ export const ChangePassword = () => {
 
   const submitHandler = async (data) => {
     setLoading(true);
+    showLoader("Updating password...");
     try {
       const res = await API.put(`/auth/updatepassword/${advertiserId}`, data);
-      toast.success(res?.data?.message);
+      showToast(res?.data?.message || "Password updated", "success");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Error updating password");
+      showToast(
+        error.response?.data?.message || "Error updating password",
+        "error"
+      );
     }
     setLoading(false);
+    hideLoader();
   };
 
   return (
@@ -52,7 +72,11 @@ export const ChangePassword = () => {
             color: "#fff",
           }}
         >
-          <Typography variant='h5' fontWeight="bold" sx={{ color: "#21cbf3", mb: 1 }}>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            sx={{ color: "#21cbf3", mb: 1 }}
+          >
             Change Password
           </Typography>
           <Divider sx={{ borderColor: "#21cbf3", mb: 3 }} />
@@ -94,7 +118,9 @@ export const ChangePassword = () => {
               }}
               label="Current Password"
               type="password"
-              {...register("oldPassword", { required: "Current password is required" })}
+              {...register("oldPassword", {
+                required: "Current password is required",
+              })}
               error={!!errors.oldPassword}
               helperText={errors.oldPassword?.message}
               InputLabelProps={{
@@ -140,7 +166,9 @@ export const ChangePassword = () => {
               }}
               label="New Password"
               type="password"
-              {...register("newPassword", { required: "New password is required" })}
+              {...register("newPassword", {
+                required: "New password is required",
+              })}
               error={!!errors.newPassword}
               helperText={errors.newPassword?.message}
               InputLabelProps={{
@@ -186,7 +214,9 @@ export const ChangePassword = () => {
               }}
               label="Confirm Password"
               type="password"
-              {...register("confirmPassword", { required: "Confirm password is required" })}
+              {...register("confirmPassword", {
+                required: "Confirm password is required",
+              })}
               error={!!errors.confirmPassword}
               helperText={errors.confirmPassword?.message}
               InputLabelProps={{
@@ -198,18 +228,20 @@ export const ChangePassword = () => {
 
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
               <Button
-                type='submit'
-                variant='contained'
+                type="submit"
+                variant="contained"
                 sx={{
                   borderRadius: "30px",
                   fontWeight: 600,
-                  background: "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
+                  background:
+                    "linear-gradient(90deg, #1976d2 60%, #21cbf3 100%)",
                   color: "#fff",
                   px: 4,
                   minWidth: 120,
                   boxShadow: 2,
                   "&:hover": {
-                    background: "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
+                    background:
+                      "linear-gradient(90deg, #1565c0 60%, #00bcd4 100%)",
                     color: "#fff",
                   },
                 }}
@@ -223,4 +255,4 @@ export const ChangePassword = () => {
       </Fade>
     </Box>
   );
-}
+};

@@ -13,12 +13,23 @@ import {
 import PersonIcon from "@mui/icons-material/Person";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import { Navbar } from "../Navbar";
+import { useToast } from "../../context/ToastContext"; // Add this
 
 export const SpecificRegister = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast(); // Add this
 
   const handleRegister = (role) => {
     navigate(`/register/${role}`);
+  };
+
+  const submitHandler = async (data) => {
+    try {
+      // ...API call...
+      showToast("Registration successful!", "success");
+    } catch (error) {
+      showToast("Registration failed.", "error");
+    }
   };
 
   // Set a fixed width and height for both cards

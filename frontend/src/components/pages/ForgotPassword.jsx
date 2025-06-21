@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import API from "../../api/axios";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useToast } from "../../context/ToastContext";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import {
   Box,
@@ -17,6 +17,7 @@ import {
 const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const {
     register,
     handleSubmit,
@@ -29,16 +30,16 @@ const ForgotPassword = () => {
       const res = await API.post("/user/forgotpassword", data);
       setLoading(false);
       if (res.data.message) {
-        toast.success("Reset Link Sent! Check your email.");
+        showToast("Reset Link Sent! Check your email.", "success");
         setTimeout(() => {
           navigate("/login");
         }, 2500);
       } else {
-        toast.error(res.data.message || "Something went wrong.");
+        showToast(res.data.message || "Something went wrong.", "error");
       }
     } catch (error) {
       setLoading(false);
-      toast.error("Email not found. Please check your Email!");
+      showToast("Email not found. Please check your Email!", "error");
     }
   };
 

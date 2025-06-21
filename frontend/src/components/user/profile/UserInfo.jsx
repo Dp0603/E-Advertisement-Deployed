@@ -13,7 +13,8 @@ import React, { useEffect, useState } from "react";
 import API from "../../../api/axios";
 import { jwtDecode } from "jwt-decode";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { useToast } from "../../../context/ToastContext";
+import { useLoader } from "../../../context/LoaderContext";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -26,6 +27,7 @@ export const UserInfo = () => {
   const token = localStorage.getItem("token");
   const decodedToken = jwtDecode(token);
   const userId = decodedToken.id;
+  const advertiserId = decodedtoken.id;
   const [user, setUser] = useState({ data: {} });
   const [isEdit, setIsEdit] = useState(false);
 
@@ -36,6 +38,8 @@ export const UserInfo = () => {
     setValue,
   } = useForm();
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const { showLoader, hideLoader } = useLoader();
 
   useEffect(() => {
     fetchUserById();
@@ -51,22 +55,28 @@ export const UserInfo = () => {
   }, [user, setValue]);
 
   const fetchUserById = async () => {
+    showLoader();
     try {
       const res = await API.get(`/auth/user/${userId}`);
       setUser(res.data);
     } catch (error) {
-      toast.error("Failed to fetch user info");
+      showToast("Failed to fetch user info", "error");
+    } finally {
+      hideLoader();
     }
   };
 
   const submitHandler = async (data) => {
+    showLoader();
     try {
       await API.put(`/auth/userupdateprofile/${userId}`, data);
-      toast.success("Details successfully updated!");
+      showToast("Details successfully updated!", "success");
       setIsEdit(false);
       fetchUserById();
     } catch (error) {
-      toast.error("Error updating details");
+      showToast("Error updating details", "error");
+    } finally {
+      hideLoader();
     }
   };
 
@@ -105,7 +115,13 @@ export const UserInfo = () => {
             background: "#e3f2fd",
           },
         }}
-        onClick={() => navigate("/user/dashboard")}
+        onClick={() => {
+          if (advertiserId) {
+            navigate(`/advertiser/dashboard/${advertiserId}`);
+          } else {
+            navigate("/login");
+          }
+        }}
       >
         Back to Dashboard
       </Button>
