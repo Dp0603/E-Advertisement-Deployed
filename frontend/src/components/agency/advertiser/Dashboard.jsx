@@ -18,10 +18,12 @@ import EventNoteIcon from "@mui/icons-material/EventNote";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { useLoader } from "../../../context/LoaderContext";
 
 export const Dashboard = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showLoader, hideLoader } = useLoader(); // Add this line
 
   useEffect(() => {
     checkUser();
@@ -47,9 +49,13 @@ export const Dashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-    window.location.reload();
+    showLoader("Logging out..."); // Show loader with message
+    setTimeout(() => {
+      localStorage.clear();
+      hideLoader(); // Hide loader before navigating
+      navigate("/login");
+      window.location.reload();
+    }, 1200); // Simulate a short delay for UX
   };
 
   // Card data for easy mapping

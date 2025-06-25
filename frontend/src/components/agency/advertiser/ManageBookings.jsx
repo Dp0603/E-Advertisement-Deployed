@@ -57,7 +57,7 @@ export const ManageBookings = () => {
     setLoading(true);
     showLoader();
     try {
-      const res = await API.get("/getbookings");
+      const res = await API.get("/getbookingsbyuser");
       setBookings(res.data.data);
     } catch (error) {
       showToast("Failed to fetch bookings", "error");

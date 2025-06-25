@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Typography, Paper, Divider, Button } from "@mui/material";
+import { jwtDecode } from "jwt-decode";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import { useToast } from "../../../../context/ToastContext";
 import { useLoader } from "../../../../context/LoaderContext";
@@ -22,6 +23,11 @@ const Payment = () => {
     hideLoader();
   };
 
+  // Get advertiserId from token (like PersonalInfo)
+  const token = localStorage.getItem("token");
+  const decodedToken = jwtDecode(token);
+  const advertiserId = decodedToken.id;
+  
   return (
     <Box
       sx={{
@@ -31,20 +37,19 @@ const Payment = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        position: "relative", // For absolute positioning of the button
+        position: "relative",
       }}
     >
-      {/* Absolutely positioned Back button at top right */}
+      {/* Back to Dashboard Button (like PersonalInfo) */}
       <Button
         variant="outlined"
         startIcon={<ArrowBackIcon />}
         sx={{
-          position: "fixed",
-          top: 32,
-          right: 32,
-          borderRadius: "30px",
+          position: "absolute",
+          top: 0,
+          right: 0,
+          borderRadius: 3,
           fontWeight: 600,
-          letterSpacing: 1,
           borderColor: "#21cbf3",
           color: "#21cbf3",
           background: "#112240",
@@ -56,9 +61,15 @@ const Payment = () => {
             background: "#e3f2fd",
           },
         }}
-        onClick={() => navigate("/advertiserprofile/profile")}
+        onClick={() => {
+          if (advertiserId) {
+            navigate(`/advertiser/dashboard/${advertiserId}`);
+          } else {
+            navigate("/login");
+          }
+        }}
       >
-        Back to Profile
+        Back to Dashboard
       </Button>
 
       <Paper

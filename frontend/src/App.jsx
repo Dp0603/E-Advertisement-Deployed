@@ -1,17 +1,17 @@
 import { Routes, Route } from "react-router-dom";
-import Registration from './components/pages/Registration'
-import Login from './components/pages/Login';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { Navbar } from './components/Navbar';
-import { WelcomeHome } from './components/pages/WelcomeHome';
-import { SpecificRegister } from './components/pages/SpecificRegister';
-import { User } from './components/user/User';
-import { Dashboard } from './components/agency/advertiser/Dashboard';
+import Registration from "./components/pages/Registration";
+import Login from "./components/pages/Login";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Navbar } from "./components/Navbar";
+import { WelcomeHome } from "./components/pages/WelcomeHome";
+import { SpecificRegister } from "./components/pages/SpecificRegister";
+import { User } from "./components/user/User";
+import { Dashboard } from "./components/agency/advertiser/Dashboard";
 import { AdDetails } from "./components/agency/advertiser/AdDetails";
 import { Screens } from "./components/agency/advertiser/Screens";
 import { BrowseAds } from "./components/user/BrowseAds";
-import { AdDetails2 } from "./components/agency/advertiser/AdDetails2";
+import AdDetails2 from "./components/agency/advertiser/AdDetails2";
 import { Screens2 } from "./components/agency/advertiser/Screens2";
 import { BookingAds } from "./components/user/BookingAds";
 import { ViewDetails } from "./components/user/ViewDetails";
@@ -19,7 +19,7 @@ import { ManageBookings } from "./components/agency/advertiser/ManageBookings";
 import SavedAds from "./components/user/SavedAds";
 import { AdvertiserProfile } from "./components/agency/advertiser/profile/AdvertiserProfile";
 import { PersonalInfo } from "./components/agency/advertiser/profile/PersonalInfo";
-import Payment from './components/agency/advertiser/profile/Payment';
+import Payment from "./components/agency/advertiser/profile/Payment";
 import { ChangePassword } from "./components/agency/advertiser/profile/ChangePassword";
 import { UserProfile } from "./components/user/profile/UserProfile";
 import { UserChangePassword } from "./components/user/profile/UserChangePassword";
@@ -29,6 +29,7 @@ import ForgotPassword from "./components/pages/ForgotPassword";
 import ResetPassword from "./components/pages/ResetPassword";
 import { LoaderProvider } from "./context/LoaderContext";
 import { ToastProvider } from "./context/ToastContext";
+import History from "./components/agency/advertiser/profile/History";
 
 function App() {
   return (
@@ -38,25 +39,32 @@ function App() {
           {/* <Navbar></Navbar> */}
 
           <Routes>
-            <Route path='/' element={<WelcomeHome />}></Route>
-            <Route path='/register/:role' element={<Registration />}></Route>
-            <Route path='/login' element={<Login />}></Route>
-            <Route path='/forgot-password' element={<ForgotPassword />}></Route>
-            <Route path='/reset-password' element={<ResetPassword />}></Route>
-            <Route path='/specificregister' element={<SpecificRegister />}></Route>
-            <Route path='/advertiser/dashboard/:id' element={<Dashboard />}></Route>
+            <Route path="/" element={<WelcomeHome />}></Route>
+            <Route path="/register/:role" element={<Registration />}></Route>
+            <Route path="/login" element={<Login />}></Route>
+            <Route path="/forgot-password" element={<ForgotPassword />}></Route>
+            <Route path="/reset-password" element={<ResetPassword />}></Route>
+            <Route
+              path="/specificregister"
+              element={<SpecificRegister />}
+            ></Route>
+            <Route
+              path="/advertiser/dashboard/:id"
+              element={<Dashboard />}
+            ></Route>
             <Route path="/managebookings" element={<ManageBookings />}></Route>
             <Route path="/ad-detail" element={<AdDetails />}></Route>
             <Route path="/ad-details2" element={<AdDetails2 />}></Route>
             <Route path="/advertiserprofile" element={<AdvertiserProfile />}>
               <Route path="profile" element={<PersonalInfo />} />
-              <Route path='payment' element={<Payment />}></Route>
+              <Route path="payment" element={<Payment />}></Route>
               <Route path="change-password" element={<ChangePassword />} />
+              <Route path="history" element={<History />} />
             </Route>
-            <Route path='/user/dashboard' element={<User />}></Route>
+            <Route path="/user/dashboard" element={<User />}></Route>
             <Route path="/userprofile" element={<UserProfile />}>
-              <Route path="profile" element={<UserInfo/>} />
-              <Route path="change-password" element={<UserChangePassword/>} />
+              <Route path="profile" element={<UserInfo />} />
+              <Route path="change-password" element={<UserChangePassword />} />
             </Route>
             <Route path="/browseads" element={<BrowseAds />}></Route>
             <Route path="/viewdetails/:id" element={<ViewDetails />}></Route>
@@ -67,11 +75,11 @@ function App() {
             <Route path="/getbookings" element={<BookedAds />}></Route>
           </Routes>
           <ToastContainer />
-        </div >
+        </div>
       </ToastProvider>
     </LoaderProvider>
-  )
+  );
 }
 
-export default App
+export default App;
 // PANDA123!@@

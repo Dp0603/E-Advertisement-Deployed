@@ -92,6 +92,42 @@ const getBookings = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+const getBookingsByUser = async (req, res) => {
+  try {
+    const userId = req.user.id; // Provided by verifyToken middleware
+
+    const userBookings = await booking
+      .find({ clientId: userId })
+      .select(
+        "startTime endTime displayFrequency specialPlacement contactPerson specialInstructions analyticsRequired status"
+      )
+      .populate({
+        path: "adId",
+        select: "title description budget",
+        populate: [
+          { path: "stateId", select: "name" },
+          { path: "cityId", select: "name" },
+        ],
+      })
+      .populate({
+        path: "clientId",
+        select: "firstName email",
+      })
+      .sort({ createdAt: -1 });
+
+    res
+      .status(200)
+      .json({
+        message: "Your bookings fetched successfully",
+        data: userBookings,
+      });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const updateBookingStatus = async (req, res) => {
   const { status } = req.body;
   const { id } = req.params;
@@ -117,4 +153,4 @@ const updateBookingStatus = async (req, res) => {
   }
 };
 
-module.exports = { createBooking, getBookings, updateBookingStatus };
+module.exports = { createBooking, getBookings, updateBookingStatus , getBookingsByUser };

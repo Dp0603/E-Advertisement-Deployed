@@ -36,7 +36,7 @@ const menuItems = [
   {
     text: "History",
     icon: <HistoryIcon sx={{ color: "#21cbf3" }} />,
-    path: "/advertiser/history",
+    path: "/advertiserprofile/history",
     tooltip: "View your activity history",
   },
 ];

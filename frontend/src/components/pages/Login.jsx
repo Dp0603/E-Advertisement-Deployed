@@ -20,6 +20,7 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { Link as RouterLink } from "react-router-dom";
 import { useToast } from "../../context/ToastContext"; // <-- Import the hook
+import { useLoader } from "../../context/LoaderContext"; // Add this import
 
 const Login = () => {
   const {
@@ -31,10 +32,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { showToast } = useToast(); // <-- Use the hook
+  const { showToast } = useToast();
+  const { showLoader, hideLoader } = useLoader(); // Add this line
 
   const submitHandler = async (data) => {
     setLoading(true);
+    showLoader("Logging in..."); // Show loader with message
     try {
       const res = await API.post("/auth/login", data);
       const token = res.data?.token || res.data?.message?.token;
@@ -58,8 +61,9 @@ const Login = () => {
 
       localStorage.setItem("userId", userId);
       localStorage.setItem("userRole", userRole);
-      showToast("Successfully logged in!", "success"); // <-- Use global toast
+      showToast("Successfully logged in!", "success");
       setTimeout(() => {
+        hideLoader(); // Hide loader before navigating
         if (userRole === "advertiser") {
           navigate(`/advertiser/dashboard/${userId}`);
         } else {
@@ -67,7 +71,8 @@ const Login = () => {
         }
       }, 1200);
     } catch (error) {
-      showToast("Login Failed. Please check your credentials", "error"); // <-- Use global toast
+      showToast("Login Failed. Please check your credentials", "error");
+      hideLoader(); // Hide loader on error
     } finally {
       setLoading(false);
     }
