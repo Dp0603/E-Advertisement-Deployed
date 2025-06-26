@@ -16,6 +16,8 @@ import {
   Fade,
   Divider,
   Avatar,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -25,7 +27,6 @@ import EmailIcon from "@mui/icons-material/Email";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
-// import BrowseBg from "../assets/images/BrowseAdsBg.jpg";
 
 const StyledCard = styled(Card)(({ theme }) => ({
   display: "flex",
@@ -79,40 +80,43 @@ export const BrowseAds = () => {
   const [loading, setLoading] = useState(true);
   const [savedAds, setSavedAds] = useState(new Set());
   const [saving, setSaving] = useState("");
+  const [error, setError] = useState("");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const navigate = useNavigate();
 
   // Get user from localStorage for profile card
   const user = JSON.parse(localStorage.getItem("user")) || {};
 
+  // Fetch all data on mount
   useEffect(() => {
-    fetchAds();
-    fetchSavedAds();
-    getStates();
+    fetchAllData();
     // eslint-disable-next-line
   }, []);
 
-  const fetchAds = async () => {
+  const fetchAllData = async () => {
     setLoading(true);
     try {
-      const res = await API.get("/browseads");
-      setAds(res.data);
-      setFilteredAds(res.data);
-    } catch (error) {
-      console.log(error);
+      const [adsRes, savedRes, statesRes] = await Promise.all([
+        API.get("/browseads"),
+        API.get("/api/saved-ads"),
+        API.get("/getstates"),
+      ]);
+      setAds(adsRes.data);
+      setFilteredAds(adsRes.data);
+      setSavedAds(new Set(savedRes.data.map((ad) => ad._id)));
+      setStates(statesRes.data.data);
+    } catch (err) {
+      setError("Failed to load ads. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchSavedAds = async () => {
-    try {
-      const res = await API.get("/api/saved-ads");
-      setSavedAds(new Set(res.data.map((ad) => ad._id)));
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
+  // Save or unsave ad
   const toggleSaveAd = async (adId) => {
     setSaving(adId);
     try {
@@ -123,65 +127,71 @@ export const BrowseAds = () => {
           newSet.delete(adId);
           return newSet;
         });
+        setSnackbar({
+          open: true,
+          message: "Removed from saved ads.",
+          severity: "info",
+        });
       } else {
         await API.post("/api/save-ad", { adId });
         setSavedAds((prev) => new Set(prev).add(adId));
+        setSnackbar({ open: true, message: "Ad saved!", severity: "success" });
       }
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: "Failed to update saved ads.",
+        severity: "error",
+      });
     } finally {
       setSaving("");
     }
   };
 
-  const getStates = async () => {
-    try {
-      const res = await API.get("/getstates");
-      setStates(res.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
+  // Fetch cities when state changes
   const getCitiesByState = async (id) => {
     setSelectedState(id);
     setCities([]);
     setSelectedCity("");
-
     if (!id) {
       setFilteredAds(ads);
       return;
     }
-
     try {
       const res = await API.get(`/getcitybystateid/${id}`);
       setCities(res.data.data);
-    } catch (error) {
-      console.log(error);
+      // Filter ads by state
+      setFilteredAds(ads.filter((ad) => ad.stateId?._id === id));
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: "Failed to load cities.",
+        severity: "error",
+      });
     }
   };
 
-  const filterAdsByCity = async (id) => {
+  // Filter ads by city
+  const filterAdsByCity = (id) => {
     setSelectedCity(id);
     if (!id) {
+      // If city is reset, show all ads for selected state
       if (selectedState) {
-        try {
-          const res = await API.get(`/ads/state/${selectedState}`);
-          setFilteredAds(res.data.ads);
-        } catch (error) {
-          console.log(error);
-        }
+        setFilteredAds(ads.filter((ad) => ad.stateId?._id === selectedState));
       } else {
         setFilteredAds(ads);
       }
       return;
     }
-    try {
-      const res = await API.get(`/ads/city/${id}`);
-      setFilteredAds(res.data.ads);
-    } catch (error) {
-      console.log(error);
-    }
+    setFilteredAds(ads.filter((ad) => ad.cityId?._id === id));
+  };
+
+  // Reset filters
+  const resetFilters = () => {
+    setSelectedState("");
+    setSelectedCity("");
+    setCities([]);
+    setFilteredAds(ads);
   };
 
   return (
@@ -190,7 +200,6 @@ export const BrowseAds = () => {
         minHeight: "100vh",
         width: "100%",
         background: "linear-gradient(120deg, #0A192F 60%, #17375E 100%)",
-        // backgroundImage: `url(${BrowseBg})`,
         backgroundSize: "cover",
         backgroundPosition: "top",
         backgroundRepeat: "no-repeat",
@@ -201,7 +210,23 @@ export const BrowseAds = () => {
         px: 2,
       }}
     >
-      {/* User Profile Card with Dashboard Button */}
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2500}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* User Profile Card */}
       <Paper
         elevation={8}
         sx={{
@@ -281,6 +306,7 @@ export const BrowseAds = () => {
         </Box>
       </Paper>
 
+      {/* Header */}
       <Paper
         elevation={8}
         sx={{
@@ -322,6 +348,7 @@ export const BrowseAds = () => {
           gap: 2,
           marginBottom: 3,
           justifyContent: "center",
+          flexWrap: "wrap",
         }}
       >
         <FormControl sx={{ minWidth: 150 }}>
@@ -358,6 +385,7 @@ export const BrowseAds = () => {
               borderRadius: 2,
               "& .MuiOutlinedInput-notchedOutline": { borderColor: "#21cbf3" },
             }}
+            disabled={!selectedState}
           >
             <MenuItem value="">All</MenuItem>
             {cities?.map((city) => (
@@ -367,6 +395,24 @@ export const BrowseAds = () => {
             ))}
           </Select>
         </FormControl>
+        <Button
+          variant="outlined"
+          onClick={resetFilters}
+          sx={{
+            borderColor: "#21cbf3",
+            color: "#21cbf3",
+            borderRadius: "30px",
+            fontWeight: 600,
+            px: 3,
+            "&:hover": {
+              borderColor: "#1976d2",
+              color: "#1976d2",
+              background: "#e3f2fd",
+            },
+          }}
+        >
+          Reset Filters
+        </Button>
       </Box>
 
       {/* Ads Grid */}
@@ -374,6 +420,10 @@ export const BrowseAds = () => {
         <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
           <CircularProgress sx={{ color: "#21cbf3" }} />
         </Box>
+      ) : error ? (
+        <Typography color="error" sx={{ mt: 4 }}>
+          {error}
+        </Typography>
       ) : (
         <Box
           sx={{
@@ -521,6 +571,9 @@ export const BrowseAds = () => {
                           width: 48,
                           height: 48,
                         }}
+                        aria-label={
+                          savedAds.has(ad._id) ? "Remove from saved" : "Save ad"
+                        }
                       >
                         {saving === ad._id ? (
                           <CircularProgress

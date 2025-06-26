@@ -30,56 +30,61 @@ import ResetPassword from "./components/pages/ResetPassword";
 import { LoaderProvider } from "./context/LoaderContext";
 import { ToastProvider } from "./context/ToastContext";
 import History from "./components/agency/advertiser/profile/History";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 function App() {
   return (
-    <LoaderProvider>
-      <ToastProvider>
-        <div>
-          {/* <Navbar></Navbar> */}
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <LoaderProvider>
+        <ToastProvider>
+          <div>
+            {/* <Navbar></Navbar> */}
 
-          <Routes>
-            <Route path="/" element={<WelcomeHome />}></Route>
-            <Route path="/register/:role" element={<Registration />}></Route>
-            <Route path="/login" element={<Login />}></Route>
-            <Route path="/forgot-password" element={<ForgotPassword />}></Route>
-            <Route path="/reset-password" element={<ResetPassword />}></Route>
-            <Route
-              path="/specificregister"
-              element={<SpecificRegister />}
-            ></Route>
-            <Route
-              path="/advertiser/dashboard/:id"
-              element={<Dashboard />}
-            ></Route>
-            <Route path="/managebookings" element={<ManageBookings />}></Route>
-            <Route path="/ad-detail" element={<AdDetails />}></Route>
-            <Route path="/ad-details2" element={<AdDetails2 />}></Route>
-            <Route path="/advertiserprofile" element={<AdvertiserProfile />}>
-              <Route path="profile" element={<PersonalInfo />} />
-              <Route path="payment" element={<Payment />}></Route>
-              <Route path="change-password" element={<ChangePassword />} />
-              <Route path="history" element={<History />} />
-            </Route>
-            <Route path="/user/dashboard" element={<User />}></Route>
-            <Route path="/userprofile" element={<UserProfile />}>
-              <Route path="profile" element={<UserInfo />} />
-              <Route path="change-password" element={<UserChangePassword />} />
-            </Route>
-            <Route path="/browseads" element={<BrowseAds />}></Route>
-            <Route path="/viewdetails/:id" element={<ViewDetails />}></Route>
-            <Route path="/bookings/:id" element={<BookingAds />}></Route>
-            <Route path="/screenings" element={<Screens />}></Route>
-            <Route path="/screenings2" element={<Screens2 />}></Route>
-            <Route path="/saved-ads" element={<SavedAds />}></Route>
-            <Route path="/getbookings" element={<BookedAds />}></Route>
-          </Routes>
-          <ToastContainer />
-        </div>
-      </ToastProvider>
-    </LoaderProvider>
+            <Routes>
+              <Route path="/" element={<WelcomeHome />}></Route>
+              <Route path="/register/:role" element={<Registration />}></Route>
+              <Route path="/login" element={<Login />}></Route>
+              <Route
+                path="/forgot-password"
+                element={<ForgotPassword />}
+              ></Route>
+              <Route path="/reset-password" element={<ResetPassword />}></Route>
+              <Route
+                path="/specificregister"
+                element={<SpecificRegister />}
+              ></Route>
+              <Route
+                path="/advertiser/dashboard/:id"
+                element={<Dashboard />}
+              ></Route>
+              <Route path="/managebookings" element={<ManageBookings />}></Route>
+              <Route path="/ad-detail" element={<AdDetails />}></Route>
+              <Route path="/ad-details2" element={<AdDetails2 />}></Route>
+              <Route path="/advertiserprofile" element={<AdvertiserProfile />}>
+                <Route path="profile" element={<PersonalInfo />} />
+                <Route path="payment" element={<Payment />}></Route>
+                <Route path="change-password" element={<ChangePassword />} />
+                <Route path="history" element={<History />} />
+              </Route>
+              <Route path="/user/dashboard" element={<User />}></Route>
+              <Route path="/userprofile" element={<UserProfile />}>
+                <Route path="profile" element={<UserInfo />} />
+                <Route path="change-password" element={<UserChangePassword />} />
+              </Route>
+              <Route path="/browseads" element={<BrowseAds />}></Route>
+              <Route path="/viewdetails/:id" element={<ViewDetails />}></Route>
+              <Route path="/bookings/:id" element={<BookingAds />}></Route>
+              <Route path="/screenings" element={<Screens />}></Route>
+              <Route path="/screenings2" element={<Screens2 />}></Route>
+              <Route path="/saved-ads" element={<SavedAds />}></Route>
+              <Route path="/getbookings" element={<BookedAds />}></Route>
+            </Routes>
+          </div>
+        </ToastProvider>
+      </LoaderProvider>
+    </LocalizationProvider>
   );
 }
 
 export default App;
-// PANDA123!@@

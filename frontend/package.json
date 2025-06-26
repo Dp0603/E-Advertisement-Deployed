@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.2.1",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.4",
     "@mui/material": "^6.4.4",
-    "@mui/x-date-pickers": "^7.27.3",
+    "@mui/x-date-pickers": "^8.5.3",
     "@mui/x-date-pickers-pro": "^7.27.3",
     "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "jwt-decode": "^4.0.0",
     "razorpay": "^2.9.6",
