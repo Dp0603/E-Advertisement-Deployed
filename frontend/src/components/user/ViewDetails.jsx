@@ -11,6 +11,7 @@ import {
   Divider,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StarIcon from "@mui/icons-material/Star";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -132,23 +133,33 @@ export const ViewDetails = () => {
         position: "relative",
       }}
     >
-      {/* Top right dashboard button */}
-      <Tooltip title="Back to Dashboard">
-        <IconButton
-          onClick={handleDashboard}
+      {/* Back to Dashboard Button - top left with spacing */}
+      <Box sx={{ width: "100%", display: "flex", justifyContent: "flex-start" }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
           sx={{
-            position: "absolute",
-            top: 32,
-            right: 48,
+            mt: 2,
+            mb: 5,
+            ml: { xs: 0, md: 2 },
+            borderRadius: "30px",
+            fontWeight: 600,
+            letterSpacing: 1,
+            borderColor: "#21cbf3",
             color: "#21cbf3",
             background: "rgba(33,203,243,0.08)",
-            "&:hover": { background: "#21cbf3", color: "#112240" },
-            zIndex: 2,
+            "&:hover": {
+              borderColor: "#1976d2",
+              background: "#e3f2fd",
+              color: "#1976d2",
+            },
           }}
+          onClick={handleDashboard}
         >
-          <ArrowForwardIcon sx={{ fontSize: 32 }} />
-        </IconButton>
-      </Tooltip>
+          Back to Dashboard
+        </Button>
+      </Box>
+
       <Paper
         elevation={16}
         sx={{
