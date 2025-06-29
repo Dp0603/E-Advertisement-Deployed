@@ -81,7 +81,7 @@ export const Dashboard = () => {
       description: "Create a new advertisement and submit your details.",
       icon: <AddCircleOutlineIcon sx={{ fontSize: 40, color: "#21cbf3" }} />, // Changed to lighter color
       buttonText: "Create Ad",
-      to: "/ad-details2",
+      to: "/ad-details3",
       tooltip: "Create a new advertisement",
     },
   ];

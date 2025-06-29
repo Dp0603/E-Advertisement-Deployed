@@ -1,9 +1,9 @@
 const Ad = require("../models/adsModel");
 const cloudinaryMiddleware = require("../middleware/cloudinaryMiddleware");
 
-// Helper: Validate required fields
-const validateAdFields = (fields, res) => {
-  const required = [
+// 🔹 Unified validation function
+const validateAdFields = (data, res) => {
+  const requiredFields = [
     "title",
     "description",
     "targetAudience",
@@ -12,24 +12,33 @@ const validateAdFields = (fields, res) => {
     "adDimensions",
     "adDuration",
     "budget",
-    "stateId",
-    "cityId",
-    "areaId",
   ];
 
-  for (const key of required) {
+  for (const field of requiredFields) {
     if (
-      !fields[key] ||
-      (Array.isArray(fields[key]) && fields[key].length === 0)
+      !data[field] ||
+      (Array.isArray(data[field]) && data[field].length === 0)
     ) {
-      res.status(400).json({ message: `Field '${key}' is required.` });
+      res.status(400).json({ message: `Field '${field}' is required.` });
       return false;
     }
   }
+
+  const hasCountryStateCity = data.country && data.state && data.city;
+  const hasStateCityAreaId = data.stateId && data.cityId && data.areaId;
+
+  if (!hasCountryStateCity && !hasStateCityAreaId) {
+    res.status(400).json({
+      message:
+        "Please provide either (country, state, city) OR (stateId, cityId, areaId).",
+    });
+    return false;
+  }
+
   return true;
 };
 
-// 🔹 Create Ad WITHOUT image (JSON body)
+// 🔹 Create Ad WITHOUT image
 const createAds = async (req, res) => {
   try {
     const {
@@ -42,6 +51,9 @@ const createAds = async (req, res) => {
       adDuration,
       budget,
       adUrl,
+      country,
+      state,
+      city,
       stateId,
       cityId,
       areaId,
@@ -64,6 +76,9 @@ const createAds = async (req, res) => {
       adDuration,
       budget,
       adUrl,
+      country,
+      state,
+      city,
       stateId,
       cityId,
       areaId,
@@ -73,8 +88,7 @@ const createAds = async (req, res) => {
 
     if (!validateAdFields(newAdData, res)) return;
 
-    const newAd = new Ad(newAdData);
-    await newAd.save();
+    const newAd = await new Ad(newAdData).save();
 
     const populatedAd = await Ad.findById(newAd._id)
       .populate("stateId", "name")
@@ -83,14 +97,14 @@ const createAds = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "Ad successfully created", ad: populatedAd });
+      .json({ message: "Ad created successfully", ad: populatedAd });
   } catch (error) {
     console.error("Create Ad error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// 🔹 Create Ad WITH file upload
+// 🔹 Create Ad WITH file
 const createAdsWithFile = async (req, res) => {
   try {
     if (!req.file) {
@@ -109,6 +123,9 @@ const createAdsWithFile = async (req, res) => {
       adDimensions,
       adDuration,
       budget,
+      country,
+      state,
+      city,
       stateId,
       cityId,
       areaId,
@@ -131,6 +148,9 @@ const createAdsWithFile = async (req, res) => {
       adDuration,
       budget,
       adUrl,
+      country,
+      state,
+      city,
       stateId,
       cityId,
       areaId,
@@ -140,26 +160,21 @@ const createAdsWithFile = async (req, res) => {
 
     if (!validateAdFields(newAdData, res)) return;
 
-    const newAd = new Ad({ ...newAdData, adUrl });
-    await newAd.save();
+    const newAd = await new Ad(newAdData).save();
 
     const populatedAd = await Ad.findById(newAd._id)
       .populate("stateId", "name")
       .populate("cityId", "name")
       .populate("areaId", "name");
 
-    return res
-      .status(201)
-      .json({ message: "Ad with image created", ad: populatedAd });
+    res.status(201).json({ message: "Ad with image created", ad: populatedAd });
   } catch (error) {
     console.error("Create Ad with File error:", error);
-    return res
-      .status(500)
-      .json({ message: "Error saving ad", error: error.message });
+    res.status(500).json({ message: "Error saving ad", error: error.message });
   }
 };
 
-// 🔹 Update Ad WITHOUT image
+// 🔹 Update Ad WITHOUT file
 const updateAds = async (req, res) => {
   try {
     const updated = await Ad.findByIdAndUpdate(req.params.id, req.body, {
@@ -172,13 +187,11 @@ const updateAds = async (req, res) => {
   }
 };
 
-// 🔹 Update Ad WITH image
+// 🔹 Update Ad WITH file
 const updateAdsWithFile = async (req, res) => {
   try {
     const ad = await Ad.findById(req.params.id);
-    if (!ad) {
-      return res.status(404).json({ message: "Ad not found" });
-    }
+    if (!ad) return res.status(404).json({ message: "Ad not found" });
 
     let adUrl = ad.adUrl;
 

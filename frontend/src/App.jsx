@@ -9,9 +9,10 @@ import { SpecificRegister } from "./components/pages/SpecificRegister";
 import { User } from "./components/user/User";
 import { Dashboard } from "./components/agency/advertiser/Dashboard";
 import { AdDetails } from "./components/agency/advertiser/AdDetails";
+import AdDetails2 from "./components/agency/advertiser/AdDetails2";
+import AdDetails3 from "./components/agency/advertiser/AdDetails3";
 import { Screens } from "./components/agency/advertiser/Screens";
 import { BrowseAds } from "./components/user/BrowseAds";
-import AdDetails2 from "./components/agency/advertiser/AdDetails2";
 import { Screens2 } from "./components/agency/advertiser/Screens2";
 import { BookingAds } from "./components/user/BookingAds";
 import { ViewDetails } from "./components/user/ViewDetails";
@@ -61,6 +62,7 @@ function App() {
               <Route path="/managebookings" element={<ManageBookings />}></Route>
               <Route path="/ad-detail" element={<AdDetails />}></Route>
               <Route path="/ad-details2" element={<AdDetails2 />}></Route>
+              <Route path="/ad-details3" element={<AdDetails3 />}></Route>
               <Route path="/advertiserprofile" element={<AdvertiserProfile />}>
                 <Route path="profile" element={<PersonalInfo />} />
                 <Route path="payment" element={<Payment />}></Route>
