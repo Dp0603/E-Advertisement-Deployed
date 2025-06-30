@@ -13,6 +13,8 @@ import {
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StarIcon from "@mui/icons-material/Star";
+import PaymentIcon from "@mui/icons-material/Payment";
+import axios from "axios"; // If not already imported
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../../api/axios";
@@ -45,6 +47,11 @@ export const ViewDetails = () => {
 
   const handleViewMyAds = () => {
     navigate("/screenings2");
+  };
+
+  const handleBookNow = () => {
+    // Navigate to the BookingAds page for this ad
+    navigate(`/book-ad/${ad._id}`);
   };
 
   useEffect(() => {
@@ -348,6 +355,31 @@ export const ViewDetails = () => {
           >
             Price: ₹{ad.budget}
           </Typography>
+          {/* Book Ad Button just after price */}
+          <Button
+            variant="outlined"
+            sx={{
+              minWidth: 200, // Match size with "Create Another Ad"
+              fontWeight: "bold",
+              fontSize: "1.15rem",
+              borderRadius: "30px",
+              mt: 2,
+              ml: 2,
+              borderColor: "#21cbf3",
+              color: "#21cbf3",
+              px: 3,
+              py: 1.3,
+              "&:hover": {
+                borderColor: "#1976d2",
+                color: "#1976d2",
+                background: "#e3f2fd",
+              },
+            }}
+            onClick={() => navigate("/bookings/" + ad._id)}
+          >
+            Book Ad
+          </Button>
+
           <Stack direction={{ xs: "column", sm: "row" }} spacing={3} mt={2}>
             <Button
               variant="contained"

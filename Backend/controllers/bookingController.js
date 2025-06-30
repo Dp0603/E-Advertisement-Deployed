@@ -1,6 +1,7 @@
 const booking = require("../models/bookingModel");
 const ads = require("../models/adsModel");
 
+
 const createBooking = async (req, res) => {
   try {
     const {
@@ -15,19 +16,18 @@ const createBooking = async (req, res) => {
     } = req.body;
     const adId = req.params.adId;
 
+    console.log(req.body);
+
     const startDate = new Date(startTime);
     const endDate = new Date(endTime);
 
-    if (startDate >= endDate) {
-      return res
-        .status(400)
-        .json({ message: "startTime must be before endTime" });
-    }
+    console.log("startDate:", startDate, "endDate:", endDate, "now:", new Date());
 
+    if (startDate >= endDate) {
+      return res.status(400).json({ message: "startTime must be before endTime" });
+    }
     if (startDate < new Date()) {
-      return res
-        .status(400)
-        .json({ message: "startTime must be in the future" });
+      return res.status(400).json({ message: "startTime must be in the future" });
     }
     const newBookings = new booking({
       clientId: req.user.id,
@@ -55,7 +55,7 @@ const createBooking = async (req, res) => {
     res.status(200).json({ message: "Booking done", fullBooking });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: error.message || "Internal server error" });
   }
 };
 
@@ -116,12 +116,10 @@ const getBookingsByUser = async (req, res) => {
       })
       .sort({ createdAt: -1 });
 
-    res
-      .status(200)
-      .json({
-        message: "Your bookings fetched successfully",
-        data: userBookings,
-      });
+    res.status(200).json({
+      message: "Your bookings fetched successfully",
+      data: userBookings,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
@@ -149,8 +147,13 @@ const updateBookingStatus = async (req, res) => {
       .json({ message: "Booking status updated", data: updatedBooking });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: error.message || "Internal server error" });
   }
 };
 
-module.exports = { createBooking, getBookings, updateBookingStatus , getBookingsByUser };
+module.exports = {
+  createBooking,
+  getBookings,
+  updateBookingStatus,
+  getBookingsByUser,
+};

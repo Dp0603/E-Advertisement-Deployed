@@ -8,10 +8,13 @@ const razorpay = new Razorpay({
 
 const create_order = async (req, res) => {
   const { amount, currency, receipt } = req.body;
+  // Ensure receipt is no more than 40 characters
+  const safeReceipt = receipt && receipt.length > 40 ? receipt.slice(0, 40) : receipt;
+
   const options = {
     amount: amount * 100,
     currency: currency,
-    receipt: receipt,
+    receipt: safeReceipt,
   };
 
   try {
